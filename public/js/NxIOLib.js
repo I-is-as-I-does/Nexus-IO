@@ -391,7 +391,7 @@ class Spinner {
     this.spinContainer = spinContainer
     if(!spinStates.length){
         spinStates = ["", "/", "–", "\\", "|"]
-    } else if(spinStates.length[0] !== ''){
+    } else if(spinStates[0] !== ''){
         spinStates.unshift('')
     }
     this.spinStates = spinStates
