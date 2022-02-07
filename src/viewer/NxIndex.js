@@ -1,12 +1,12 @@
-/*! Nexus | (c) 2021 I-is-as-I-does | AGPLv3 license */
+
 import {
   easeOut,
   insertDiversion,
   replaceDiversion,
 } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
-import { registerUpdateEvt } from "../browser/NxState.js";
+import { registerUpdateEvt } from "../shared/NxState.js";
 import { authorHandle, authorUrl, viewLink } from "./NxIdent.js";
-import { blockWrap, getElm, lines } from "../browser/NxCommons.js";
+import { blockWrap, getElm, lines } from "../shared/NxCommons.js";
 
 var indexList = null;
 

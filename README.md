@@ -1,48 +1,71 @@
-# Nexus
+# Nexus IO
 
-Nexus is a peer-to-peer Micro Social Network.  
-This is the code repository of the project.  
-  
-Documentation: [nexus-dock.github.io](https://nexus-dock.github.io/)  
-Documentation repository: [nexus-dock/nexus-dock.github.io](https://github.com/nexus-dock/nexus-dock.github.io)  
-Demo: [nexus-dock.github.io/instance](https://nexus-dock.github.io/instance)  
-Editor: [nexus-dock.github.io/instance/?new](https://nexus-dock.github.io/instance/?new)  
-  
-Apache starter kit: [I-is-as-I-does/Nexus-Apache-starter](https://github.com/I-is-as-I-does/Nexus-Apache-starter)  
-GitHub Pages starter kit: [I-is-as-I-does/Nexus-Github-starter](https://github.com/I-is-as-I-does/Nexus-Github-starter)
+Nexus is a Peer-to-Peer Micro Social Network.  
+Nexus IO is a Nexus reader and editor app in vanilla JS.
 
-New!  
-Toolkit repository for Nexus related apps: [I-is-as-I-does/Nexus Core](https://github.com/I-is-as-I-does/Nexus-Core)  
-Nexus Folio, reader-only Vue app: [I-is-as-I-does/Nexus-Folio](https://github.com/I-is-as-I-does/Nexus-Folio)  
+### Screenshots
 
-## App Status
+<img src="doc/NxIO-editor-screenshot.png" height="200px" />
+<img src="doc/NxIO-reader-screenshot.png" height="200px" />
 
-Stamper / Viewer / Editor prototype 1.0.1  
-all 47.9ko dist.  
-viewer only 34.6ko dist. + 9.4ko css  
-No dep.  
+## Use the App
 
-/!\ Needs update
+Copy the snippet, change the `data-src`, and paste it in an html page.  
+If you wish to use your own theme, add  `data-style="path/to/your/theme.css"` to the `div` tag.  
 
-### Get your hands dirty
+```html
+<div id="Nexus" data-src="http://website.com/path/to/your/nexus/file.json#optional-thread-id"></div>
+<script src="https://cdn.jsdelivr.net/gh/I-is-as-I-does/Nexus@latest/dist/js/NxIO.js"></script>
+```
 
-Fork, clone, `npm install`
+### Launch the Editor
 
-### Main Wishes
+In your browser address bar, add `?new` or `?edit` to the current url.  
+If a query string is already present, use `&new` or `&edit` instead.
 
-[Contribute](./CONTRIBUTING.md)!
+### Enable Console Logs
 
-- [ ] Additional **translations** (Es, It, De)
-- [ ] Additional **themes**
-- [ ] Additional **starter kits**
-- [ ] **Server-side app** for easy admin (PHP and/or Node)
-- [ ] **Nexus Registry website** or Nexus of Nexuses
+Add `?log` (or `&log`) to the current url.
 
-### To do
+## Edit Source Code
 
-- [ ] Repo: move default App to its own repo
-- [ ] Src: update default App with new NxCore (**lots** of fixes + some breaking changes)
-- [ ] Doc: update with recent changes
-- [ ] Doc: visual schema
+This app uses [Nexus Core](https://github.com/I-is-as-I-does/Nexus-Core) for a good part of its logic; you might want to take a look at this repository too.  
+It will be installed as a dependency.  
+
+### Clone
+
+```bash
+git clone https://github.com/I-is-as-I-does/Nexus-IO
+```
+
+### Install
+
+```bash
+npm install
+```
+
+### Dev Build
+
+Target directory: `public/`
+
+```bash
+npm run build:dev
+```
+
+### Prod Build
+
+Target directory: `dist/`
+
+```bash
+npm run build:prod
+```
+
+## Related
+
+For apps, documentation, demo, starter kits, ... cf. [github.com/I-is-as-I-does/Nexus](https://github.com/I-is-as-I-does/Nexus) 
+
+## License
+
+This project is under the **GNU AGPLv3 License**. 
 
 <a href='https://ko-fi.com/I2I17EOYP' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>

@@ -83,7 +83,7 @@
 /******/ 	/* webpack/runtime/load script */
 /******/ 	(() => {
 /******/ 		var inProgress = {};
-/******/ 		var dataWebpackPrefix = "nexus:";
+/******/ 		var dataWebpackPrefix = "nexus-io:";
 /******/ 		// loadScript function to load a script via script tag
 /******/ 		__webpack_require__.l = (url, done, key, chunkId) => {
 /******/ 			if(inProgress[url]) { inProgress[url].push(done); return; }
@@ -242,7 +242,7 @@
 /******/ 		
 /******/ 		}
 /******/ 		
-/******/ 		var chunkLoadingGlobal = self["webpackChunknexus"] = self["webpackChunknexus"] || [];
+/******/ 		var chunkLoadingGlobal = self["webpackChunknexus_io"] = self["webpackChunknexus_io"] || [];
 /******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
 /******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
 /******/ 	})();
@@ -253,7 +253,7 @@ var __webpack_exports__ = {};
   !*** ./src/NxIO.js ***!
   \*********************/
 (function () { 
-    Promise.all(/*! import() */[__webpack_require__.e("NxBrowserLibraries"), __webpack_require__.e("NxBrowser"), __webpack_require__.e("NxBrowserEditor")]).then(__webpack_require__.bind(__webpack_require__, /*! ./browser/NxStart.js */ "./src/browser/NxStart.js")).then(NxStart => {
+    Promise.all(/*! import() */[__webpack_require__.e("NxIOLib"), __webpack_require__.e("NxIOView"), __webpack_require__.e("NxIOEdit")]).then(__webpack_require__.bind(__webpack_require__, /*! ./shared/NxStart.js */ "./src/shared/NxStart.js")).then(NxStart => {
         NxStart.init()
     })
   })();

@@ -13,26 +13,25 @@ const dirs = {
 const splitChunks = {
     chunks: "all",
     cacheGroups: {
-      NxBrowserLibraries: {
+      NxIOLib: {
         test: /[\\/]valva|jack-js|nexus-core[\\/]/,
-        name: "NxBrowserLibraries",
+        name: "NxIOLib",
         chunks: "all",
       },
-      NxBrowserEditor: {
+      NxIOEdit: {
         test: /[\\/]editor[\\/]/,
-        name: "NxBrowserEditor",
+        name: "NxIOEdit",
         chunks: "all",
       },
-      NxBrowser: {
-        test: /([\\/](viewer|browser)[\\/])/,
-        name: "NxBrowser",
+      NxIOView: {
+        test: /([\\/](viewer|shared)[\\/])/,
+        name: "NxIOView",
         chunks: "all",
       },
     },
   }
   
 module.exports = (env, argv) => {
-    console.log(argv.mode)
     if (argv.mode === 'development' || argv.mode === 'production') {
       return require('./config/' + argv.mode + '.js')(dirs, splitChunks);
     } else {

@@ -1,14 +1,14 @@
-/*! Nexus | (c) 2021 I-is-as-I-does | AGPLv3 license */
+
 import { isNonEmptyStr } from "@i-is-as-i-does/jack-js/src/modules/Check.js";
 import { easeIn, easeOut, insertDiversion, replaceDiversion } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
-import { registerUpdateEvt, resolveState } from "../browser/NxState.js";
+import { registerUpdateEvt, resolveState } from "../shared/NxState.js";
 import {
   authorIndexLink,
   authorUrl,
   viewLink,
 } from "./NxIdent.js";
 import { mediaElm } from "./NxMedia.js";
-import { blockWrap, getElm,  landmarkElm,  lines,  setHistoryControls,  threadTitleElm, toggleNavEnd, spinContainer } from "../browser/NxCommons.js";
+import { blockWrap, getElm,  landmarkElm,  lines,  setHistoryControls,  threadTitleElm, toggleNavEnd, spinContainer } from "../shared/NxCommons.js";
 import { logErr } from "@i-is-as-i-does/nexus-core/src/logs/NxLog.js";
 import { splitUrlAndId } from "@i-is-as-i-does/nexus-core/src/validt/NxStamper.js";
 import { Spinner } from "@i-is-as-i-does/nexus-core/src/data/NxSpin.js";

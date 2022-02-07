@@ -1,13 +1,13 @@
-/*! Nexus | (c) 2021 I-is-as-I-does | AGPLv3 license */
+
 import { copyToClipboard } from "@i-is-as-i-does/jack-js/src/modules/Stock.js";
 import { timedFadeToggle, easeOut, easeIn } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
-import { blockWrap, getElm, iconImage } from "../browser/NxCommons.js";
+import { blockWrap, getElm, iconImage } from "../shared/NxCommons.js";
 import { registerTranslElm } from "@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js";
-import { concatSrc, registerUpdateEvt } from "../browser/NxState.js";
+import { concatSrc, registerUpdateEvt } from "../shared/NxState.js";
 import { getLang } from "@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js";
 import { getSnippet } from "@i-is-as-i-does/nexus-core/src/data/NxSnippet.js";
-import { appDefaultCss, appIO } from "../browser/NxCdn.js";
-import { copyB64 } from "../browser/NxIcons.js";
+import { appDefaultCss, appIO } from "../shared/NxCdn.js";
+import { copyB64 } from "../shared/NxIcons.js";
 
 var drawerElm = null;
 var editMode = false;

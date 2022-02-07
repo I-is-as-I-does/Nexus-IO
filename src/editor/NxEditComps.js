@@ -1,8 +1,8 @@
-/*! Nexus | (c) 2021 I-is-as-I-does | AGPLv3 license */
+
 import { getTxt } from "@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js";
 import { registerTranslElm } from "@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js";
-import { getElm, iconImage } from "../browser/NxCommons.js";
-import { invalidB64 } from "../browser/NxIcons.js";
+import { getElm, iconImage } from "../shared/NxCommons.js";
+import { invalidB64 } from "../shared/NxIcons.js";
 
   export function textInput(val) {
     var inp = getElm("INPUT", "nx-edit-text");

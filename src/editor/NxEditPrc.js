@@ -1,4 +1,3 @@
-/*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
 import { replaceDiacritics } from "@i-is-as-i-does/jack-js/src/modules/Help.js";
 
 const providers = ["youtube", "vimeo", "soundcloud"];
@@ -28,28 +27,6 @@ export function convertToId(title) {
     return replaceDiacritics(title.trim().replace(/[\s_]/, "-"));
   }
 
-  /*
-export function updateDistantDropdown(input, url, valid){
- 
-    var prc = function(items = []){  
-      var ndropdown = selectDropDown(items,input,null,"nx-edit-select-linked");
-     // input.nextSibling.replaceWith(ndropdown.lastChild);
-      console.log()
-    };
- 
-    if(!url || !valid){
-      prc();
-      return;
-      }
-    getSrcData(url).then((data)=> {
-      prc(getThreadsList(data));
-    }).catch(() => {
-      input.pattern = urlPattern+"(?<!"+escapeRegExp(url)+")";
-      input.dispatchEvent(new window.Event('change'));
-    });
-  }
-*/
-  
   export function newState(data, url = "nexus-tmp", id = "/", idx = -1){
     return {
       dataUrl: url,
