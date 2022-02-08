@@ -27,6 +27,37 @@ If a query string is already present, use `&new` or `&edit` instead.
 
 Add `?log` (or `&log`) to the current url.
 
+## Navigate
+
+### Modules
+
+`< ≚ >`  
+History module.  
+
+`</>`  
+Snippets module.  
+
+`First Column`  
+Current Nexus author and threads list.  
+
+`#local`  
+Current thread description and its content.  
+
+`#distant`  
+Other threads and instances linked to the current local thread.  
+If there is more than one distant content, you can navigate them using `⊻` and `⊼`.  
+
+### Links
+
+Clicking on an author handle will load its Nexus.  
+To display a thread, pick one in the index list.  
+Thread links in the distant module will both load the distant Nexus and related thread.  
+
+### Hints
+
+If a thread has not yet been visited, or if its content has been updated since your last visit, its link will be followed by an asterisk: `*`.
+
+
 ## Edit Source Code
 
 This app uses [Nexus Core](https://github.com/I-is-as-I-does/Nexus-Core) for a good part of its logic; you might want to take a look at this repository too.  
