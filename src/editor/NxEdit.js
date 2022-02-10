@@ -1,6 +1,7 @@
 import {
   charMinMax,
   idPattern,
+  itemsMinMax,
   supportedMediaTypes,
   urlPattern,
 } from "@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js"
@@ -24,6 +25,7 @@ import {
 } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js"
 import { randomString } from "@i-is-as-i-does/jack-js/src/modules/Help.js"
 import {
+  getAltState,
   getBuffertime,
   registerUpdateEvt,
   triggerUpdate,
@@ -33,7 +35,10 @@ import {
   getStoredEditData,
   registerEditData,
 } from "@i-is-as-i-does/nexus-core/src/storg/NxMemory.js"
-import { validData } from "@i-is-as-i-does/nexus-core/src/validt/NxStamper.js"
+import {
+  isValidUrl,
+  validData,
+} from "@i-is-as-i-does/nexus-core/src/validt/NxStamper.js"
 import { newData, newThread } from "./NxStarters.js"
 import {
   getSrcData,
@@ -81,6 +86,7 @@ var editState = {
 var originData = null
 var previewOn = false
 var upDownEvent = new CustomEvent("IndexChange")
+var changeEvent = new Event("change")
 var prcRunning = false
 var actCtrls = {
   ctrls: {
@@ -108,6 +114,7 @@ var authorInputs = {
 }
 var feedbackrun = null
 var instanceBtn
+var addThreadBtn
 
 function moveItem(from, to) {
   editState.srcData.index.splice(
@@ -184,35 +191,42 @@ function setMoveBtns(li, id) {
   li.append(dv)
 }
 
-function threadLocalForm(idx, titleCallback) {
+function threadLocalForm(idx, indexElm) {
   var form = getElm("FORM", "nx-thread-local-form")
 
   var fieldset1 = getElm("FIELDSET")
-
+  var idCallback = function (inp) {
+    indexElm.dataset.id = inp.value
+  }
+  var titleCallback = function (inp) {
+    var targ = indexElm.querySelector(".nx-thread-title")
+    if (targ.textContent !== inp.value) {
+      targ.textContent = inp.value
+    }
+  }
+  fieldset1.append(inputElm(["threads", idx, "id"], idCallback))
   fieldset1.append(inputElm(["threads", idx, "title"], titleCallback))
   fieldset1.append(inputElm(["threads", idx, "description"]))
 
   var fieldset2 = getElm("FIELDSET")
-
-  ;["timestamp", "main", "aside"].forEach((field) => {
+  var fields = ["timestamp", "main", "aside"]
+  fields.forEach((field) => {
     fieldset2.append(inputElm(["threads", idx, "content", field]))
   })
 
   var fieldset3 = getElm("FIELDSET")
 
   var typeInp = inputElm(["threads", idx, "content", "media", "type"])
-  var tcallback = function (input, valid) {
-    if (valid) {
-      var item = typeInp.querySelector(
-        "[data-item=" + resolveMediaType(input.value) + "]"
-      )
-      if (item) {
-        item.click()
-      }
+  var typeCallback = function (inp) {
+    var item = typeInp.querySelector(
+      "[data-item=" + resolveMediaType(inp.value) + "]"
+    )
+    if (item) {
+      item.click()
     }
   }
   fieldset3.append(
-    inputElm(["threads", idx, "content", "media", "url"], tcallback)
+    inputElm(["threads", idx, "content", "media", "url"], typeCallback)
   )
   fieldset3.append(typeInp)
   fieldset3.append(inputElm(["threads", idx, "content", "media", "caption"]))
@@ -228,16 +242,28 @@ function threadLocalForm(idx, titleCallback) {
   return form
 }
 
-function addThreadBtn() {
-  var btn = addBtn()
-  btn.addEventListener("click", function () {
+function toggleAddBtn(btn, haystack, itemsKey){
+  var disabled = false
+  if(itemsMinMax[itemsKey][1] <= haystack.length){
+    disabled = true
+  } 
+  if(btn.disabled !== disabled){
+    btn.disabled = disabled
+  }
+}
+
+function setAddThreadBtn() {
+  addThreadBtn= addBtn()
+  toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
+  addThreadBtn.addEventListener("click", function () {
+    if(!addThreadBtn.disabled){
     var randomId = randomString(10)
     var idx = editState.srcData.index.length
     editState.srcData.threads.push(newThread(randomId))
     editState.srcData.index.push(randomId)
     var map = threadElms(idx, randomId)
-
-    ;["local", "distant"].forEach((k) => {
+    var ks = ["local", "distant"]
+    ks.forEach((k) => {
       map[k].parent.append(map[k].child)
     })
 
@@ -249,9 +275,10 @@ function addThreadBtn() {
     }
     insertDiversion(map.index.parent, map.index.child, false, true, 200, callb)
     toggleBtn(saveBtn, false)
+    toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
+  }
   })
 
-  return btn
 }
 
 function toggleBtn(btn, disabled = false) {
@@ -263,41 +290,38 @@ function toggleBtn(btn, disabled = false) {
   }
 }
 
-function linkInput(form, idx, i) {
+function linkInput(indexLi, addLinkBtn, form, idx, i) {
   var linkwrap = getElm("DIV", "nx-edit-distant-link")
-  var elm = inputElm(
-    ["threads", idx, "linked", i],
-    function (input, valid, fdbck) {
-      if (valid && input.value) {
-        getSrcData(input.value).catch(() => {
-          fdbck.firstChild.src = invalidB64
-        })
-      }
-    }
-  )
-
+  var store = {linked: null}
+  var elm = inputElm(["threads", idx, "linked", i], null, store)
   var dltBtn = deleteLinkBtn()
   var delwrap = getElm("DIV", "nx-distant-link-action")
   delwrap.append(dltBtn)
 
   dltBtn.addEventListener("click", () => {
     var act = function (redo) {
+     var nidx= editState.srcData.index.indexOf(indexLi.dataset.id)
+     var ni = editState.srcData.threads[nidx].linked.indexOf(store.linked.value)
+
       if (redo) {
         easeOut(linkwrap, 200, function () {
           linkwrap.remove()
         })
+        editState.srcData.threads[nidx].linked.splice(ni, 1)
       } else {
         if (
-          idx === editState.threadIndex &&
-          i === editState.srcData.threads[idx].linked.length - 1
+          i === editState.srcData.threads[nidx].linked.length - 1
         ) {
+          editState.srcData.threads[nidx].linked.push(store.linked.value)
           insertDiversion(form, linkwrap, false, true, 200)
         } else {
-          var nextSibling = form.childNodes[i]
+          editState.srcData.threads[nidx].linked.splice(ni, 0, store.linked.value)
+          var nextSibling = form.childNodes[ni]
           form.insertBefore(linkwrap, nextSibling)
           easeIn(linkwrap, 200)
         }
       }
+      toggleAddBtn(addLinkBtn, editState.srcData.threads[nidx].linked, 'linked')
     }
     setLastAction(act)
     act(true)
@@ -306,30 +330,44 @@ function linkInput(form, idx, i) {
   return linkwrap
 }
 
-function threadDistantForm(idx, id) {
+function threadDistantForm(idx, indexLi) {
   var form = getElm("FORM", "nx-thread-distant-form")
-
-  var linked = editState.srcData.threads[idx].linked
-
-  var elms = []
-  var len = linked.length
-  if (len) {
-    for (var i = 0; i < len; i++) {
-      var elm = linkInput(form, idx, i)
-      elms.push(elm)
-    }
+  var addLinkBtn = addBtn()
+  toggleAddBtn(addLinkBtn, editState.srcData.threads[idx].linked, 'linked')
+  addLinkBtn.addEventListener("click", () => {
+    if(!addLinkBtn.disabled){
+    var nidx = editState.srcData.index.indexOf(indexLi.dataset.id)
+    editState.srcData.threads[nidx].linked.push("")
+    insertDiversion(
+      form,
+      linkInput(indexLi, addLinkBtn, form, nidx, editState.srcData.threads[nidx].linked.length - 1),
+      false,
+      true,
+      200
+    )
+    toggleAddBtn(addLinkBtn, editState.srcData.threads[nidx].linked, 'linked')
   }
-  form.append(...elms)
-  var formCnt = getElm("DIV")
-  var addBtnElm = addBtn()
-  addBtnElm.addEventListener("click", () => {
-    var idx = editState.srcData.index.indexOf(id)
-    var i = editState.srcData.threads[idx].linked.length
-    editState.srcData.threads[idx].linked.push("")
-    insertDiversion(form, linkInput(form, idx, i), false, true, 200)
   })
 
-  formCnt.append(landmarkElm("linked threads"), form, addBtnElm)
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      editState.srcData.threads[idx],
+      "linked"
+    )
+  ) {
+    editState.srcData.threads[idx].linked = []
+  } else if (editState.srcData.threads[idx].linked.length) {
+    var elms = []
+    for (var i = 0; i < editState.srcData.threads[idx].linked.length; i++) {
+      var elm = linkInput(indexLi, addLinkBtn, form, idx, i)
+      elms.push(elm)
+    }
+    form.append(...elms)
+  }
+
+  var formCnt = getElm("DIV")
+  formCnt.append(landmarkElm("linked threads"), form, addLinkBtn)
+
   return formCnt
 }
 
@@ -338,7 +376,7 @@ function threadLi(id, form) {
 
   li.append(form)
 
-  if (editState.threadId != id) {
+  if (editState.threadId !== id) {
     li.style.display = "none"
   }
   registerUpdateEvt(function (nState) {
@@ -356,22 +394,14 @@ function threadLi(id, form) {
   return li
 }
 
-function stateUpdate(idx, id) {
-  var newState = Object.assign({}, editState)
-  newState.threadId = id
-  newState.threadIndex = idx
-
-  return newState
-}
-
 function indexLink(idx, id) {
-  var itemState = stateUpdate(idx, id)
+  var itemState = getAltState(editState, id, idx)
   var indLk = baseViewLink(itemState, false)
   setToggleOnDisplay(indLk, itemState)
 
   indLk.addEventListener("click", () => {
-    var nidx = editState.srcData.index.indexOf(id)
-    triggerUpdate(stateUpdate(nidx, id), true)
+    var nidx = editState.srcData.index.indexOf(indLk.parentNode.dataset.id)
+    triggerUpdate(getAltState(editState, id, nidx), true)
   })
 
   return indLk
@@ -385,24 +415,31 @@ function threadElms(idx, id) {
   }
 
   map.index.child = getElm("LI")
+  map.index.child.dataset.id = id
+
   map.index.link = indexLink(idx, id)
   map.index.child.append(map.index.link)
   setMoveBtns(map.index.child, id)
 
-  var titleCallback = function (input, valid) {
-    if (valid) {
-      var newId = convertToId(input.value)
-      map.index.link.firstChild.textContent = newId
-      setNewValue(["threads", idx, "id"], newId)
-    }
-  }
-  map.distant.child = threadLi(id, threadDistantForm(idx, id))
-  map.local.child = threadLi(id, threadLocalForm(idx, titleCallback))
+  map.distant.child = threadLi(id, threadDistantForm(idx, map.index.child))
+  map.local.child = threadLi(id, threadLocalForm(idx, map.index.child))
 
-  map.index.del = deleteThreadElm(map.local.child, map.distant.child, id)
+  map.index.del = deleteThreadElm(
+    map.local.child,
+    map.distant.child,
+    map.index.child
+  )
   map.index.child.append(map.index.del)
 
   return map
+}
+
+function resetActions(){
+  lastAction = []
+  actCtrls.position = 0
+  actCtrls.count = 0
+  toggleNavEnd(actCtrls)
+
 }
 
 function setLastAction(callback) {
@@ -423,13 +460,13 @@ function setLastAction(callback) {
   toggleBtn(saveBtn, false)
 }
 
-function deleteEvent(localLi, distantLi, id) {
+function deleteEvent(localLi, distantLi, indexLi) {
+  var id = indexLi.dataset.id
   var idx = editState.srcData.index.indexOf(id)
-  var indexNode = editIndex.childNodes[idx]
   var len = editState.srcData.index.length
   var map = {
     index: id,
-    threads: editState.srcData.threads[idx],
+    threads: Object.assign({}, editState.srcData.threads[idx]),
   }
 
   var act = function (redo) {
@@ -438,20 +475,26 @@ function deleteEvent(localLi, distantLi, id) {
         editState.srcData[field].splice(idx, 1)
       })
 
-      editState.threadIndex = idx - 1
-      editState.threadId = editState.srcData.index[idx - 1]
+      if (len > 1) {
+        if (idx === 0) {
+          indexLi.nextSibling.dispatchEvent(upDownEvent)
+        } else if (idx === len - 1) {
+          indexLi.previousSibling.dispatchEvent(upDownEvent)
+        }
+      }
 
-      ;[distantLi, localLi, indexNode].forEach((elm) => {
+      ;[distantLi, localLi, indexLi].forEach((elm) => {
         easeOut(elm, 200, function () {
           elm.remove()
         })
       })
-      if (len > 1) {
-        if (idx === 0) {
-          indexNode.nextSibling.dispatchEvent(upDownEvent)
-        } else if (idx === len - 1) {
-          indexNode.previousSibling.dispatchEvent(upDownEvent)
-        }
+
+      if (editState.threadId === id) {
+        editState.threadId = "/"
+        editState.threadIndex = -1
+        triggerUpdate(editState, true, true)
+      } else if (editState.threadIndex > idx) {
+        editState.threadIndex--
       }
     } else {
       Object.keys(map).forEach((field) => {
@@ -460,33 +503,35 @@ function deleteEvent(localLi, distantLi, id) {
 
       if (idx < len - 1) {
         var next = editIndex.childNodes[idx]
-        editIndex.insertBefore(indexNode, next)
+        editIndex.insertBefore(indexLi, next)
         if (idx === 0) {
           next.dispatchEvent(upDownEvent)
         }
       } else {
-        editIndex.append(indexNode)
+        editIndex.append(indexLi)
         if (len > 1) {
-          indexNode.previousSibling.dispatchEvent(upDownEvent)
+          indexLi.previousSibling.dispatchEvent(upDownEvent)
         }
       }
-      easeIn(indexNode, 200)
+
       editLocal.append(localLi)
       editDistant.append(distantLi)
-      indexNode.firstChild.click()
+      easeIn(indexLi, 200)
+      indexLi.firstChild.click()
     }
+    toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
   }
   setLastAction(act)
   act(true)
 }
 
-function deleteThreadElm(localLi, distantLi, id) {
+function deleteThreadElm(localLi, distantLi, indexLi) {
   var btn = getElm("BUTTON", "nx-delete-thread")
   btn.type = "button"
   btn.textContent = "-"
 
   btn.addEventListener("click", function () {
-    deleteEvent(localLi, distantLi, id)
+    deleteEvent(localLi, distantLi, indexLi)
   })
   return btn
 }
@@ -505,6 +550,11 @@ function setThreadIndex(ref) {
   } else if (typeof editState.srcData.threads[ref[1]] === "undefined") {
     editState.srcData.threads[ref[1]] = {}
   }
+}
+
+function setThreadId(ref, value) {
+  editState.srcData.index.splice(ref[1], 1, value)
+  editState.srcData.threads[ref[1]].id = value
 }
 
 function setThreadInfo(ref, value) {
@@ -527,24 +577,25 @@ function setContentValue(ref, value) {
 }
 
 function setLinkedValue(ref, value) {
-  if (!editState.srcData.threads[ref[1]].linked.length) {
+  if (!editState.srcData.threads[ref[1]].linked) {
     editState.srcData.threads[ref[1]].linked = []
-  } else if (editState.srcData.threads[ref[1]].linked.indexOf(ref[2]) === -1) {
-    editState.srcData.threads[ref[1]].linked.push(value)
-  } else {
+  } 
     editState.srcData.threads[ref[1]].linked[ref[3]] = value
-  }
 }
 
 function setNewValue(ref, value) {
   if (editState.srcData === null) {
     editState.srcData = {}
+    editState.srcData.index = []
   }
   if (ref[0] === "author") {
     return setAuthorValue(ref, value)
   }
   setThreadIndex(ref)
 
+  if (ref[2] === "id") {
+    return setThreadId(ref, value)
+  }
   if (!["linked", "content"].includes(ref[2])) {
     return setThreadInfo(ref, value)
   }
@@ -625,12 +676,17 @@ function inputElm(ref, callback = null, store = null) {
   var fdbck = invalidSp()
   lb.append(indc, fdbck)
 
-  switch (ident) {
+  switch (field) {
     case "url":
       indc.textContent = "[http]"
       inp.pattern = urlPattern
       break
+    case "linked":
+      indc.textContent = "[http]"
+      inp.pattern = urlPattern
+      break
     case "id":
+      indc.textContent = "[A-Za-z0-9-][3-36]"
       inp.pattern = idPattern
       break
     case "type":
@@ -666,20 +722,93 @@ function inputElm(ref, callback = null, store = null) {
   return wrap
 }
 
+function isUnique(haystack, needle, excludeIdx) {
+  if (haystack.indexOf(needle) !== -1) {
+    for (var c = 0; c < haystack.length; c++) {
+      if (c !== excludeIdx && haystack[c] === needle) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+function uniqueId(id, idx) {
+  id = convertToId(id)
+  if (!isUnique(editState.srcData.index, id, idx)) {
+    var sp = id.split("-")
+    var last = sp.pop()
+    var incr
+    if (!isNaN(last)) {
+      incr = parseInt(last)
+      incr++
+    } else {
+      sp.push(last)
+      incr = 1
+    }
+    id = sp.join("-")
+    while (editState.srcData.index.includes(id + "-" + incr)) {
+      incr++
+    }
+    id += "-" + incr
+  }
+  return id
+}
+
 function inputEvtHandler(ref, inp, fdbck, callback) {
-  var valid = false
-  var icsrc
-  if (inp.checkValidity()) {
-    valid = true
+  var success = function () {
     setNewValue(ref, inp.value)
-    icsrc = validB64
+    setFeedbackIcon(fdbck, true)
+    if (typeof callback === "function") {
+      callback(inp)
+    }
+  }
+
+  var failure = function () {
+    setFeedbackIcon(fdbck, false)
+  }
+
+  var valid = inp.checkValidity()
+
+  if ((valid && ref.includes("url")) || ref.includes("linked")) {
+    valid = isValidUrl(inp.value)
+    if (valid && ref.includes("linked")) {
+      valid = isUnique(
+        editState.srcData.threads[ref[1]].linked,
+        inp.value,
+        ref[3]
+      )
+      if (valid) {
+        return getSrcData(inp.value)
+          .then(() => {
+            success()
+          })
+          .catch(() => {
+            failure()
+          })
+      }
+    }
+  } else if (ref.includes("id")) {
+    var nId = uniqueId(inp.value, ref[1])
+    if (nId !== inp.value) {
+      inp.value = nId
+    }
+    valid = true
+  }
+
+  if (valid) {
+    success()
   } else {
-    icsrc = invalidB64
+    failure()
+  }
+}
+
+function setFeedbackIcon(fdbck, valid) {
+  var icsrc = invalidB64
+  if (valid) {
+    icsrc = validB64
   }
   fdbck.firstChild.src = icsrc
-  if (typeof callback === "function") {
-    callback(inp, valid, fdbck)
-  }
 }
 
 function setInputEvt(ref, inp, fdbck, callback) {
@@ -725,7 +854,8 @@ function triggerUndoRedo(ctrl) {
 
 function setAuthorForm() {
   authorForm = getElm("FORM", "nx-edit-author")
-  ;["handle", "url", "about"].forEach((field) => {
+  var fields = ["handle", "url", "about"]
+  fields.forEach((field) => {
     authorForm.append(inputElm(["author", field], null, authorInputs))
   })
 }
@@ -790,6 +920,7 @@ function downloadBtn() {
 function resetAuthorForm() {
   for (let [field, input] of Object.entries(authorInputs)) {
     input.value = editState.srcData.author[field]
+    input.dispatchEvent(changeEvent)
   }
 }
 
@@ -799,10 +930,12 @@ function resetData(nData) {
   if (nData === null) {
     nData = newData()
   }
+  resetActions()
 
   var act = function (redo) {
     if (editState.srcData.threads.length) {
-      ;[editIndex, editLocal, editDistant].forEach((parent) => {
+      var parents = [editIndex, editLocal, editDistant]
+      parents.forEach((parent) => {
         Array.from(parent.childNodes).forEach((child) => {
           easeOut(child, 150, function () {
             child.remove()
@@ -812,6 +945,7 @@ function resetData(nData) {
     }
 
     if (redo) {
+
       editState.srcData = nData
     } else {
       editState.srcData = prevData
@@ -824,9 +958,8 @@ function resetData(nData) {
     resetAuthorForm()
     setThreads(true)
   }
-
-  setLastAction(act)
   act(true)
+  setLastAction(act)
 }
 
 function newDocumenBtn() {
@@ -855,7 +988,7 @@ function fileInput() {
   inp.type = "file"
   inp.accept = "application/json"
   inp.addEventListener("change", function (evt) {
-    loadSrcFile(evt)
+    loadSrcFile(evt, true)
       .then((data) => {
         data.index = getThreadsList(data)
         resetData(data)
@@ -864,6 +997,7 @@ function fileInput() {
         logErr(err.message)
         displayFeedback("Invalid source")
       })
+    inp.value = ""
   })
   inp.style.display = "none"
   return inp
@@ -930,9 +1064,11 @@ function authorPart() {
   dv.append(landmarkElm("author"), authorForm)
   return dv
 }
+
 function indexPart() {
   var dv = getElm("DIV", "nx-edit-list")
-  dv.append(landmarkElm("threads"), editIndex, addThreadBtn())
+  setAddThreadBtn()
+  dv.append(landmarkElm("threads"), editIndex, addThreadBtn)
   return dv
 }
 
@@ -944,7 +1080,6 @@ function setThreadsForms() {
 }
 function setEditMenu() {
   editMenu = getElm("DIV", "nx-edit-menu")
-
   editMenu.append(editNav(), editActions())
 }
 
@@ -952,7 +1087,7 @@ export function getEditMenu() {
   return editMenu
 }
 
-export function instanceSwitch(viewerInst, editInst) {
+export function instanceSwitch(readerInst, editInst) {
   instanceBtn = getElm("A", "nx-edit-switch")
   instanceBtn.append(iconImage(previewB64, 25))
 
@@ -961,10 +1096,10 @@ export function instanceSwitch(viewerInst, editInst) {
     triggerUpdate(editState, true, true)
     if (previewOn) {
       instanceBtn.firstChild.src = editB64
-      replaceDiversion(editInst, viewerInst)
+      replaceDiversion(editInst, readerInst)
     } else {
       instanceBtn.firstChild.src = previewB64
-      replaceDiversion(viewerInst, editInst)
+      replaceDiversion(readerInst, editInst)
     }
   })
 

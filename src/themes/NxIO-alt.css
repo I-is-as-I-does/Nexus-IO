@@ -47,7 +47,7 @@ display: inline-block;
 vertical-align: top;
 }
 
-.nx .nx-viewer > section {
+.nx .nx-reader > section {
     min-height: 80vh;
 }
 .nx ul {

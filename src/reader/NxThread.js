@@ -1,7 +1,7 @@
 
 import { isNonEmptyStr } from "@i-is-as-i-does/jack-js/src/modules/Check.js";
 import { easeIn, easeOut, insertDiversion, replaceDiversion } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
-import { registerUpdateEvt, resolveState } from "../shared/NxState.js";
+import { getAltState, registerUpdateEvt, resolveState } from "../shared/NxState.js";
 import {
   authorIndexLink,
   authorUrl,
@@ -10,9 +10,9 @@ import {
 import { mediaElm } from "./NxMedia.js";
 import { blockWrap, getElm,  landmarkElm,  lines,  setHistoryControls,  threadTitleElm, toggleNavEnd, spinContainer } from "../shared/NxCommons.js";
 import { logErr } from "@i-is-as-i-does/nexus-core/src/logs/NxLog.js";
-import { splitUrlAndId } from "@i-is-as-i-does/nexus-core/src/validt/NxStamper.js";
 import { Spinner } from "@i-is-as-i-does/nexus-core/src/data/NxSpin.js";
-
+import { getLinkedInstances } from "@i-is-as-i-does/nexus-core/src/data/NxNest.js";
+import { registerLinkedMaps } from "@i-is-as-i-does/nexus-core/src/storg/NxMemory";
 var threadBlocks
 
 var currentElm;
@@ -70,7 +70,7 @@ function updateThreadBlocks(state) {
     spinElm.style.display = 'block'
 
     var newThreadData = resolveThreadData(state);
-    resetDistantLinks(newThreadData);
+    resetDistantLinks(state.dataUrl, newThreadData);
   
     var newContent = threadContent(newThreadData, false);
     var newDescrpTxt = threadTextElm(newThreadData, ["description"]);
@@ -87,15 +87,15 @@ function descriptionElm(threadData) {
 
 function resolveThreadData(state) {
   var threadData = null;
-  if (state.threadId && state.threadId != "/") {
-    threadData = state.srcData.threads[state.threadIndex];
+  if (state.threadId && state.threadId !== "/") {
+    threadData = state.srcData.threads[state.threadIndex]
   }
   return threadData;
 }
-function distantThreadBlock(threadData) {
+function distantThreadBlock(dataUrl, threadData) {
   setDistantLandmark();
   setDistantSlider();
-  resolveLinkedThreads(threadData)
+  resolveLinkedThreads(dataUrl, threadData)
   return blockWrap("distant", [slider], distantLandmark);
 }
 
@@ -118,7 +118,7 @@ function hideDistantNav(){
   distantNav.style.visibility = 'hidden'
 }
 
-function resetDistantLinks(threadData){
+function resetDistantLinks(dataUrl, threadData){
 
   hideDistantNav()
   toggleDistantLandmark(false)
@@ -129,12 +129,12 @@ function resetDistantLinks(threadData){
    linkedCtrls.count = 0;
   toggleNavEnd(linkedCtrls);
 
-  resolveLinkedThreads(threadData)
+  resolveLinkedThreads(dataUrl, threadData)
 }
 
-function resolveLinkedThreads(threadData){
+function resolveLinkedThreads(dataUrl, threadData){
   if (threadData && threadData.linked.length) {  
-    setLinkedItems(threadData);
+    setLinkedItems(dataUrl, threadData);
     } else {
       countReady()
     }
@@ -155,13 +155,6 @@ function removeDistantContent(transition = false){
 }
 
 function setFirstDistantContent(showNav = false){
-  /*  var callb = function(){
-      toggleDistantLandmark(true)
-      if(showNav){
-        showDistantNav()
-      }      
-    }
-  insertDiversion(currentElm, linked[0], false, true, 200, callb);*/
   toggleDistantLandmark(true)
       if(showNav){
         showDistantNav()
@@ -200,13 +193,15 @@ slider = getElm("DIV");
 }
 function linkedElm(distantState){
   
-  var linkedAuthor = [
+  var elms = [
     authorIndexLink(distantState, false),
-    authorUrl(distantState, false),
-    viewLink(distantState, false),
+    authorUrl(distantState, false)
   ];
+  if(distantState.threadId !== '/'){
+    elms.push(viewLink(distantState, false), threadContent(resolveThreadData(distantState), true))
+  }
   var elm = getElm("DIV");
-  elm.append(...linkedAuthor);
+  elm.append(...elms);
   return elm;
 }
 
@@ -218,39 +213,51 @@ function toggleDistantLandmark(hasLinks){
     distantLandmark.style.display = 'none'
   }
 }
-function setLinkedItems(threadData) {
 
-    var indexes = [];
-    var done = [];
-    var promises = [];
-    threadData.linked.forEach((url) => {
-      if(url){
-        var extract = splitUrlAndId(url);
-         var prc = resolveState(extract.url, extract.id).then((distantState) => {
-            var key = distantState.dataUrl+"#"+distantState.threadId;
-    
-            if(!done.includes(key)){
-              done.push(key);
-              var elm = linkedElm(distantState);
-            if (distantState.threadId == "/") {                 
-              indexes.push(elm);
+
+function setLinkedItems(dataUrl, threadData) {
+  var key = dataUrl+"#"+threadData.id
+  var store = getLinkedInstances(key, threadData)
+
+  var register = store.register
+  var confirmedInstances = {}
+  var indexes = []
+  const promises = []
+  for(let [url, ids] of Object.entries(store.instances)){
+    var prc = resolveState(url, '/', true).then((distantState) => {
+      confirmedInstances[url] = []
+      if(ids.length){   
+        ids.forEach(id => {
+          var threadIndex = distantState.srcData.index.indexOf(id)
+            if(threadIndex !== -1){
+              confirmedInstances[url].push(id)
+              var nDistantState = getAltState(distantState, id, threadIndex)
+              linked.push(linkedElm(nDistantState))
             } else {
-              elm.append(threadContent(resolveThreadData(distantState), true));
-              linked.push(elm);
+              register = true
+              logErr('Linked thread could not be resolved', id)
             }
-          }
-          }).catch(err => {
-            logErr(err.message);
-          });
-          promises.push(prc);
+        })
+      }
+      if(!confirmedInstances[url].length){
+        indexes.push(linkedElm(distantState))
+      }
+    }).catch(() => {
+      register = true
+      logErr('Linked source could not be resolved', url)
+  });
+   promises.push(prc);
+  }
+
+ Promise.all(promises).then(() => { 
+    if (register) {
+      registerLinkedMaps(key, confirmedInstances)
     }
-    });
-   Promise.all(promises).then(()=>{
-      if(indexes.length){
-        linked = linked.concat(indexes);
-      }  
-      countReady()   
-    });
+    if(indexes.length){
+      linked = linked.concat(indexes);
+    }  
+    countReady()   
+  })
 }
 
 function threadContent(threadData, isDistant = false) {
@@ -315,11 +322,11 @@ function threadHeader(state, threadData){
   return header
 }
 
-function localAndDistantBlocks(threadData){
+function localAndDistantBlocks(dataUrl, threadData){
 
   threadBlocks = getElm('DIV', 'nx-thread-blocks')
   threadBlocks.style.display = 'none'
-  threadBlocks.append(localThreadBlock(threadData),  distantThreadBlock(threadData))
+  threadBlocks.append(localThreadBlock(threadData),  distantThreadBlock(dataUrl, threadData))
 
   return threadBlocks
 }
@@ -340,7 +347,7 @@ export function mainThreadBlock(state) {
   var blocks = [
     threadHeader(state, threadData),
     spinElm, 
-    localAndDistantBlocks(threadData)
+    localAndDistantBlocks(state.dataUrl, threadData)
   ];
 
   mainBlock.append(...blocks)

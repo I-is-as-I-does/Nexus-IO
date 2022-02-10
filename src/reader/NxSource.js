@@ -22,7 +22,7 @@ function actionLink(action, text) {
 function resolveSrc(state){
   var src
   if(editMode){
-    src = "#temp";
+    src = "#editing";
   } else  {
     src = concatSrc(state)
   }
@@ -126,6 +126,9 @@ function embedSnippet(state) {
 
 function embedContent(state) {
 
+  if(editMode){
+    return "#editing";
+  }
   if(state.dataUrl){
     return getSnippet(resolveSrc(state), currentStyle, appIO, getLang())
   }

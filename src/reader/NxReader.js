@@ -7,7 +7,7 @@ import { sourceBlock } from "./NxSource.js";
 import { mainThreadBlock } from "./NxThread.js";
 
 
-export function viewerElms(seed){
+export function readerElms(seed){
 
     return instanceWrap(appHeader(), [serviceWrap
    ([historyBlock(seed.state)], [

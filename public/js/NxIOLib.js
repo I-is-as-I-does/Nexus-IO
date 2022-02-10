@@ -85,7 +85,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function getRequest (NxElm, appDefaultCss = null, appDefaultLang = null) {
+function getRequest (NxElm, appDefaultCss = null, appDefaultCssAliases = [], appDefaultLang = null) {
   if(!appDefaultCss){
     appDefaultCss = _NxDefaults_js__WEBPACK_IMPORTED_MODULE_2__.defaultStyle
   }
@@ -111,7 +111,7 @@ function getRequest (NxElm, appDefaultCss = null, appDefaultLang = null) {
     if (NxElm.dataset.id && (0,_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_1__.isValidId)(NxElm.dataset.id)) {
       request.id = NxElm.dataset.id // @doc: id specified in data-id trumps id contained in src url
     }
-    if (NxElm.dataset.style) {
+    if (NxElm.dataset.style && NxElm.dataset.style !== request.style && !appDefaultCssAliases.includes(NxElm.dataset.style)) {
       var cssUrl = (0,_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getAbsoluteUrl)(NxElm.dataset.style)
       if ((0,_i_is_as_i_does_jack_js_src_modules_Web__WEBPACK_IMPORTED_MODULE_0__.isValidHttpUrl)(cssUrl)) {
         request.style = cssUrl
@@ -341,6 +341,97 @@ function preResolveViewMedia (view) {
 
 /***/ }),
 
+/***/ "./node_modules/@i-is-as-i-does/nexus-core/src/data/NxNest.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/@i-is-as-i-does/nexus-core/src/data/NxNest.js ***!
+  \********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "buildLinkedInstances": () => (/* binding */ buildLinkedInstances),
+/* harmony export */   "getLinkedInstances": () => (/* binding */ getLinkedInstances),
+/* harmony export */   "resolveLinkedViews": () => (/* binding */ resolveLinkedViews)
+/* harmony export */ });
+/* harmony import */ var _storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../storg/NxMemory.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxMemory.js");
+/* harmony import */ var _validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validt/NxStamper.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxStamper.js");
+/* harmony import */ var _load_NxSrc_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../load/NxSrc.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
+/* harmony import */ var _logs_NxLog_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../logs/NxLog.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/logs/NxLog.js");
+/* harmony import */ var _NxViews_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxViews.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/data/NxViews.js");
+/*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
+
+
+
+
+
+
+
+function buildLinkedInstances (thread, exclude = []) {
+  // @doc instances = {url:[...ids] }
+  var instances = {}
+
+  for(var i=0; i < thread.linked.length; i++){
+    if (!exclude.includes(thread.linked[i])) {
+      var split = (0,_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_1__.splitUrlAndId)(thread.linked[i])
+      if (!exclude.includes(split.url)) {
+        if(!Object.prototype.hasOwnProperty.call(instances, split.url)){
+          instances[split.url] = []
+        } 
+        if(split.id){
+          instances[split.url].push(split.id)
+        }
+      }
+    }
+  }
+  return instances
+}
+
+
+function getLinkedInstances (src, thread, exclude = []) {
+  var store = { instances: (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_0__.getStoredLinkedMaps)(src), register: false }
+  if (store.instances === null) {
+    store.instances = buildLinkedInstances(thread, exclude)
+    store.register = true
+  }
+  return store
+}
+
+
+function resolveLinkedViews (view, exclude = []) {
+  var store = getLinkedInstances(view.src, view.data, exclude)
+  var register = store.register
+  var confirmedInstances = {}
+  const promises = []
+  for(let [url, ids] of Object.entries(store.instances)){
+    var promise = (0,_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_2__.getSrcData)(url).then(nxdata => {
+      var viewstore = (0,_NxViews_js__WEBPACK_IMPORTED_MODULE_4__.authorAndselectedThreadsViews)(nxdata, url, ids)
+      if (!register && viewstore.failed.length) {
+        register = true
+        ;(0,_logs_NxLog_js__WEBPACK_IMPORTED_MODULE_3__.logErr)('Linked threads could not be resolved', viewstore.failed.join(', '))
+      }
+      view.nested.push({views : viewstore.views, list: viewstore.list})
+      confirmedInstances[url] = viewstore.confirmed
+    }).catch(() => {
+      if (!register){
+        register = true
+      }
+      (0,_logs_NxLog_js__WEBPACK_IMPORTED_MODULE_3__.logErr)('Linked source could not be resolved', url)
+    })
+    promises.push(promise)
+  }
+
+  return Promise.all(promises).then(() => { 
+    if (register) {
+      (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_0__.registerLinkedMaps)(view.src, confirmedInstances)
+    }
+    view.resolved.nested = true
+    return view
+  })
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/@i-is-as-i-does/nexus-core/src/data/NxSnippet.js":
 /*!***********************************************************************!*\
   !*** ./node_modules/@i-is-as-i-does/nexus-core/src/data/NxSnippet.js ***!
@@ -411,7 +502,7 @@ class Spinner {
             clearInterval(f)
           } else {
             this.spinContainer.textContent = this.spinStates[this.spinPosition]
-            if (this.spinPosition === this.spinStates.length) {
+            if (this.spinPosition === (this.spinStates.length - 1)) {
               this.spinPosition = 1
             } else {
               this.spinPosition++
@@ -419,6 +510,153 @@ class Spinner {
           }
     }.bind(this), this.speed)
   }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/@i-is-as-i-does/nexus-core/src/data/NxViews.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/@i-is-as-i-does/nexus-core/src/data/NxViews.js ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "threadView": () => (/* binding */ threadView),
+/* harmony export */   "authorView": () => (/* binding */ authorView),
+/* harmony export */   "selectedThreadsViews": () => (/* binding */ selectedThreadsViews),
+/* harmony export */   "allThreadsViews": () => (/* binding */ allThreadsViews),
+/* harmony export */   "addAuthorView": () => (/* binding */ addAuthorView),
+/* harmony export */   "authorAndThreadsViews": () => (/* binding */ authorAndThreadsViews),
+/* harmony export */   "authorAndselectedThreadsViews": () => (/* binding */ authorAndselectedThreadsViews),
+/* harmony export */   "getView": () => (/* binding */ getView),
+/* harmony export */   "addViewToHistory": () => (/* binding */ addViewToHistory),
+/* harmony export */   "listenToHistoryChange": () => (/* binding */ listenToHistoryChange),
+/* harmony export */   "processFirstView": () => (/* binding */ processFirstView),
+/* harmony export */   "extendInitData": () => (/* binding */ extendInitData)
+/* harmony export */ });
+/* harmony import */ var _base_NxHost__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../base/NxHost */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
+/* harmony import */ var _validt_NxStamper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validt/NxStamper */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxStamper.js");
+/*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
+
+
+
+function threadView (thread, url) {
+  return {
+    src: url + '#' + thread.id,
+    data: thread,
+    nested: [],
+    resolved: { nested: false, media: false }
+  }
+}
+
+function authorView (nxdata, url) {
+  return {
+    src: url,
+    data: nxdata.author
+  }
+}
+
+function selectedThreadsViews (nxdata, url, ids) {
+  var viewstore = {
+    views: { threads: [] },
+    list: [],
+    failed: ids,
+    confirmed: []
+  }
+  nxdata.threads.forEach((thread) => {
+    var idx = ids.indexOf(thread.id) 
+    if (idx !== -1) {
+      var view = threadView(thread, url)
+      viewstore.views.threads.push(view)
+      viewstore.list.push(view.src)
+      viewstore.confirmed.push(thread.id)
+      viewstore.failed.splice(idx,1)
+    }
+  })
+  return viewstore
+}
+
+function allThreadsViews (nxdata, url) {
+  var viewstore = {
+    views: { threads: [] },
+    list: []
+  }
+  nxdata.threads.forEach(thread => {
+    var view = threadView(thread, url)
+    viewstore.views.threads.push(view)
+    viewstore.list.push(view.src)
+  })
+  return viewstore
+}
+
+function addAuthorView (nxdata, url, viewstore) {
+  viewstore.views.author = authorView(nxdata, url)
+}
+
+function authorAndThreadsViews (nxdata, url) {
+  var viewstore = allThreadsViews(nxdata, url)
+  addAuthorView(nxdata, url, viewstore)
+  return viewstore
+}
+
+function authorAndselectedThreadsViews (nxdata, url, ids) {
+  var viewstore = selectedThreadsViews(nxdata, url, ids)
+  addAuthorView(nxdata, url, viewstore)
+  return viewstore
+}
+
+function getView (viewstore, src) {
+  if (src === viewstore.views.author.src) {
+    return viewstore.views.author
+  }
+  var index = viewstore.list.indexOf(src)
+  if (index !== -1) {
+    return viewstore.views.threads[index]
+  }
+  return null
+}
+
+function addViewToHistory (src, replace = false) {
+  var url = _base_NxHost__WEBPACK_IMPORTED_MODULE_0__.splitCurrentUrl.url
+  var id = (0,_validt_NxStamper__WEBPACK_IMPORTED_MODULE_1__.splitUrlAndId)(src).id
+  if (id) {
+    url += '#' + id
+  }
+  if (replace) {
+    window.history.replaceState({ nexus: src }, document.title, url)
+  } else {
+    window.history.pushState({ nexus: src }, document.title, url)
+  }
+}
+
+function listenToHistoryChange (callback) {
+  window.onpopstate = function (event) {
+    if (event.state && event.state.nexus) {
+      callback(event.state.nexus)
+    }
+  }
+}
+
+function processFirstView (request, viewstore, forceId = null) {
+  if (request.id) {
+    var ids = [forceId, request.id]
+    for (var i = 0; i < 2; i++) {
+      var index = viewstore.list.indexOf(request.url + '#' + ids[i])
+      if (index !== -1) {
+        return viewstore.views.threads[index]
+      }
+    }
+  }
+  return viewstore.views.author
+}
+
+function extendInitData (seed, forceId = null) {
+    seed.viewstore = authorAndThreadsViews(seed.nxdata, seed.request.url)
+    seed.firstview = processFirstView(seed.request, seed.viewstore, forceId)
+    addViewToHistory(seed.firstview.src, true)
+    return seed
 }
 
 
@@ -461,6 +699,7 @@ const defaultInitOptions = {
   forceStyle: null,
   customSignatureRule: null,
   appDefaultCss: null, 
+  appDefaultCssAliases: [],
   appDefaultLang: null
 }
 
@@ -520,7 +759,7 @@ function initAll (options = {}) {
   setCookie()
   initLogger(seed.options.forceLog)
   seed.nxelm = retrieveNxElm(seed.options.customSelector)
-  seed.request = (0,_base_NxRequest_js__WEBPACK_IMPORTED_MODULE_2__.getRequest)(seed.nxelm, seed.options.appDefaultCss, seed.options.appDefaultLang)
+  seed.request = (0,_base_NxRequest_js__WEBPACK_IMPORTED_MODULE_2__.getRequest)(seed.nxelm, seed.options.appDefaultCss, seed.options.appDefaultCssAliases, seed.options.appDefaultLang)
     return resolveTheme(seed.request, seed.options.appDefaultCss, seed.options.forceStyle, seed.options.customSignatureRule)
     .then((styleUrl) => {
       seed.styleUrl = styleUrl
@@ -598,9 +837,12 @@ function loadSrc (url) {
     })
 }
 
-function prcFileSrc (readerEvent) {
+function prcFileSrc (readerEvent, skipValidt = false) {
   var nxdata = JSON.parse(readerEvent.target.result)
   if (nxdata) {
+    if(skipValidt){
+      return nxdata
+    }
     nxdata = (0,_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_3__.validData)(nxdata)
     if (nxdata) {
       return nxdata
@@ -609,13 +851,13 @@ function prcFileSrc (readerEvent) {
   return false
 }
 
-function loadSrcFile (inputEvt) {
+function loadSrcFile (inputEvt, skipValidt = false) {
   if (inputEvt.target.files.length) {
     if (inputEvt.target.files[0].type === 'application/json') {
       return new Promise((resolve, reject) => {
         var reader = new FileReader()
         reader.onload = function (event) {
-          var nxdata = prcFileSrc(event)
+          var nxdata = prcFileSrc(event, skipValidt)
           if (nxdata) {
             resolve(nxdata)
           } else {
@@ -1266,6 +1508,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "isValidId": () => (/* binding */ isValidId),
 /* harmony export */   "isValidUrl": () => (/* binding */ isValidUrl),
 /* harmony export */   "isValidLinkItm": () => (/* binding */ isValidLinkItm),
+/* harmony export */   "isValidLegacyLinkItm": () => (/* binding */ isValidLegacyLinkItm),
 /* harmony export */   "getValidSrcUrl": () => (/* binding */ getValidSrcUrl),
 /* harmony export */   "validLinks": () => (/* binding */ validLinks),
 /* harmony export */   "validThread": () => (/* binding */ validThread),
@@ -1281,7 +1524,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _NxSpecs_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NxSpecs.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
 /* harmony import */ var _logs_NxLog_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../logs/NxLog.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/logs/NxLog.js");
 /* harmony import */ var _base_NxHost_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../base/NxHost.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
+/* harmony import */ var _load_NxInit_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../load/NxInit.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxInit.js");
 /*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
+
 
 
 
@@ -1510,9 +1755,14 @@ function isValidLinkItm (link) {
   return false
 }
 
+
+function isValidLegacyLinkItm(item){
+  return (0,_i_is_as_i_does_jack_js_src_modules_Check__WEBPACK_IMPORTED_MODULE_0__.isNonEmptyObj)(item) && isValidUrl(item.url) && (!item.id || item.id === '/' || isValidId(item.id))
+}
+
 function getValidSrcUrl (url, id) {
   url = (0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_5__.getAbsoluteUrl)(url)
-  if (isValidLinkItm(url)) {
+  if (isValidUrl(url)) {
     if (id && isValidId(id)) {
       url += '#' + id
     }
@@ -1531,21 +1781,30 @@ function validLinks (linked) {
       len = limit
     }
     for (var i = 0; i < len; i++) {
+      var url = null
       if (isValidLinkItm(linked[i])) {
         var split = splitUrlAndId(linked[i])
-        var url = split.url
+        url = split.url
         if (split.id) {
           url += '#' + split.id
         }
+      } else if(isValidLegacyLinkItm(linked[i])){
+        url = linked[i].url
+        if (linked[i].id && linked[i].id !== '/') {
+          url += '#' + linked[i].id
+        }
+      }
 
+        if(url){
         if (!vlinked.includes(url)) {
           vlinked.push(url)
-          continue
+        } else {
+          (0,_logs_NxLog_js__WEBPACK_IMPORTED_MODULE_4__.logErr)('Duplicate linked thread', url)
         }
-        (0,_logs_NxLog_js__WEBPACK_IMPORTED_MODULE_4__.logErr)('Duplicate linked thread', linked[i])
+      }
+        
       }
     }
-  }
   return vlinked
 }
 

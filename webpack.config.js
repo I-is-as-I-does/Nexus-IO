@@ -23,9 +23,9 @@ const splitChunks = {
         name: "NxIOEdit",
         chunks: "all",
       },
-      NxIOView: {
-        test: /([\\/](viewer|shared)[\\/])/,
-        name: "NxIOView",
+      NxIORead: {
+        test: /([\\/](reader|shared)[\\/])/,
+        name: "NxIORead",
         chunks: "all",
       },
     },

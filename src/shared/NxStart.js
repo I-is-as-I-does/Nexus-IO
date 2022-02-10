@@ -5,9 +5,9 @@ import { setOriginLang } from "@i-is-as-i-does/nexus-core/src/transl/NxCoreTrans
 import { logErr } from "@i-is-as-i-does/nexus-core/src/logs/NxLog.js";
 import { dataToState, setOriginState } from './NxState.js'
 import { editorElms } from "./../editor/NxEditor.js";
-import { viewerElms } from "./../viewer/NxViewer.js";
+import { readerElms } from "./../reader/NxReader.js";
 import { errorPrgr } from "./NxCommons.js";
-import { appDefaultCss } from "./NxCdn.js";
+import { appDefaultCss, legacyDefaultCss } from "./NxCdn.js";
 
 
 function mountApp(nxElm, appElm){
@@ -18,7 +18,7 @@ function mountApp(nxElm, appElm){
 }
 
 export function init(){
-    initAll({appDefaultLang: 'en', appDefaultCss: appDefaultCss}).then(seed => {
+    initAll({appDefaultLang: 'en', appDefaultCss: appDefaultCss, appDefaultCssAliases: legacyDefaultCss}).then(seed => {
         setOriginLang(seed.request.lang)
         seed.state = dataToState(seed.request.url, seed.request.id, seed.nxdata)
         setOriginState(seed.state)
@@ -28,7 +28,7 @@ export function init(){
           seed.editMode = true
          elm = editorElms(seed);
         } else {
-         elm = viewerElms(seed);
+         elm = readerElms(seed);
         }
 
       mountApp(seed.nxelm, elm)

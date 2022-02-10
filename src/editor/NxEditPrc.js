@@ -24,7 +24,7 @@ export function resolveMediaType(val) {
 }
 
 export function convertToId(title) {
-    return replaceDiacritics(title.trim().replace(/[\s_]/, "-"));
+  return replaceDiacritics(title).trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/(^-|-$)+/g, '')
   }
 
   export function newState(data, url = "nexus-tmp", id = "/", idx = -1){

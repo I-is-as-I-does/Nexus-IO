@@ -1,13 +1,13 @@
 
 import { appHeaderWithLang, getElm, instanceWrap, serviceWrap } from "../shared/NxCommons.js";
-import { viewerElms } from "../viewer/NxViewer.js";
+import { readerElms } from "../reader/NxReader.js";
 import { editDistantBlock, editIndexBlock, editLocalBlock, getEditMenu, setEditState, instanceSwitch } from "./NxEdit.js";
 
 export function editorElms(seed){
 
     setEditState(seed.state, seed.nxelm);
 
-    var viewerInst = viewerElms(seed);
+    var readerInst = readerElms(seed);
   
    var indexPart = getElm("DIV");
    indexPart.append(editIndexBlock());
@@ -21,7 +21,7 @@ export function editorElms(seed){
     ], [], "edit")]);
 
     var editor = getElm('DIV','nx-editor')
-    editor.append(editInst, instanceSwitch(viewerInst, editInst))
+    editor.append(editInst, instanceSwitch(readerInst, editInst))
     
     return editor
   }

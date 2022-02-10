@@ -1,0 +1,29 @@
+{
+    "nexus": "https://nexus-dock.github.io/",
+    "author": {
+        "handle": "Prototype",
+        "about": "I'm a paragraph\n about \nthe \nauthor, \ndah<script>alert('Boo!');</script>",
+        "url": "https://nexus-dock.github.io/"
+    },
+    "threads": [
+        {
+            "id": "Thread-I",
+            "title": "I'm a Thread Title",
+            "description": "Thread description comes here.",
+            "content": {
+                "timestamp": "2021-12-12T00:12",
+                "main": "Main field of the thread content.",
+                "aside": "Aside field of the thread content.",
+                "media": {
+                    "url": "https://en.wikipedia.org/wiki/Special:Random",
+                    "type": "page",
+                    "caption": "Caption field"
+                }
+            },
+            "linked": [ {
+                "url":"http://127.0.0.1:5500/public/source/limits-test.json",
+                "id":"/"
+            }]
+        }
+    ]
+}

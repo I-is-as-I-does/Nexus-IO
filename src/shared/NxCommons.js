@@ -79,7 +79,7 @@ export function instanceWrap(appHeader, serviceElms){
 }
 
 export function serviceWrap
-(navElms, mainElms, footerElms = [], service = 'viewer') {
+(navElms, mainElms, footerElms = [], service = 'reader') {
   var wrap = getElm("DIV", "nx-"+service);
   var nav = getElm("NAV");
   nav.append(...navElms);

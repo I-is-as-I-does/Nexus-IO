@@ -60,6 +60,7 @@ var editState = {
 var originData = null
 var previewOn = false
 var upDownEvent = new CustomEvent("IndexChange")
+var changeEvent = new Event("change")
 var prcRunning = false
 var actCtrls = {
   ctrls: {
@@ -87,6 +88,7 @@ var authorInputs = {
 }
 var feedbackrun = null
 var instanceBtn
+var addThreadBtn
 
 function moveItem(from, to) {
   editState.srcData.index.splice(
@@ -163,35 +165,42 @@ function setMoveBtns(li, id) {
   li.append(dv)
 }
 
-function threadLocalForm(idx, titleCallback) {
+function threadLocalForm(idx, indexElm) {
   var form = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-thread-local-form")
 
   var fieldset1 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
-
+  var idCallback = function (inp) {
+    indexElm.dataset.id = inp.value
+  }
+  var titleCallback = function (inp) {
+    var targ = indexElm.querySelector(".nx-thread-title")
+    if (targ.textContent !== inp.value) {
+      targ.textContent = inp.value
+    }
+  }
+  fieldset1.append(inputElm(["threads", idx, "id"], idCallback))
   fieldset1.append(inputElm(["threads", idx, "title"], titleCallback))
   fieldset1.append(inputElm(["threads", idx, "description"]))
 
   var fieldset2 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
-
-  ;["timestamp", "main", "aside"].forEach((field) => {
+  var fields = ["timestamp", "main", "aside"]
+  fields.forEach((field) => {
     fieldset2.append(inputElm(["threads", idx, "content", field]))
   })
 
   var fieldset3 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
 
   var typeInp = inputElm(["threads", idx, "content", "media", "type"])
-  var tcallback = function (input, valid) {
-    if (valid) {
-      var item = typeInp.querySelector(
-        "[data-item=" + (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_11__.resolveMediaType)(input.value) + "]"
-      )
-      if (item) {
-        item.click()
-      }
+  var typeCallback = function (inp) {
+    var item = typeInp.querySelector(
+      "[data-item=" + (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_11__.resolveMediaType)(inp.value) + "]"
+    )
+    if (item) {
+      item.click()
     }
   }
   fieldset3.append(
-    inputElm(["threads", idx, "content", "media", "url"], tcallback)
+    inputElm(["threads", idx, "content", "media", "url"], typeCallback)
   )
   fieldset3.append(typeInp)
   fieldset3.append(inputElm(["threads", idx, "content", "media", "caption"]))
@@ -207,16 +216,28 @@ function threadLocalForm(idx, titleCallback) {
   return form
 }
 
-function addThreadBtn() {
-  var btn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.addBtn)()
-  btn.addEventListener("click", function () {
+function toggleAddBtn(btn, haystack, itemsKey){
+  var disabled = false
+  if(_i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.itemsMinMax[itemsKey][1] <= haystack.length){
+    disabled = true
+  } 
+  if(btn.disabled !== disabled){
+    btn.disabled = disabled
+  }
+}
+
+function setAddThreadBtn() {
+  addThreadBtn= (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.addBtn)()
+  toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
+  addThreadBtn.addEventListener("click", function () {
+    if(!addThreadBtn.disabled){
     var randomId = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__.randomString)(10)
     var idx = editState.srcData.index.length
     editState.srcData.threads.push((0,_NxStarters_js__WEBPACK_IMPORTED_MODULE_8__.newThread)(randomId))
     editState.srcData.index.push(randomId)
     var map = threadElms(idx, randomId)
-
-    ;["local", "distant"].forEach((k) => {
+    var ks = ["local", "distant"]
+    ks.forEach((k) => {
       map[k].parent.append(map[k].child)
     })
 
@@ -228,9 +249,10 @@ function addThreadBtn() {
     }
     (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(map.index.parent, map.index.child, false, true, 200, callb)
     toggleBtn(saveBtn, false)
+    toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
+  }
   })
 
-  return btn
 }
 
 function toggleBtn(btn, disabled = false) {
@@ -242,41 +264,38 @@ function toggleBtn(btn, disabled = false) {
   }
 }
 
-function linkInput(form, idx, i) {
+function linkInput(indexLi, addLinkBtn, form, idx, i) {
   var linkwrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-distant-link")
-  var elm = inputElm(
-    ["threads", idx, "linked", i],
-    function (input, valid, fdbck) {
-      if (valid && input.value) {
-        (0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_9__.getSrcData)(input.value).catch(() => {
-          fdbck.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.invalidB64
-        })
-      }
-    }
-  )
-
+  var store = {linked: null}
+  var elm = inputElm(["threads", idx, "linked", i], null, store)
   var dltBtn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.deleteLinkBtn)()
   var delwrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-distant-link-action")
   delwrap.append(dltBtn)
 
   dltBtn.addEventListener("click", () => {
     var act = function (redo) {
+     var nidx= editState.srcData.index.indexOf(indexLi.dataset.id)
+     var ni = editState.srcData.threads[nidx].linked.indexOf(store.linked.value)
+
       if (redo) {
         (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(linkwrap, 200, function () {
           linkwrap.remove()
         })
+        editState.srcData.threads[nidx].linked.splice(ni, 1)
       } else {
         if (
-          idx === editState.threadIndex &&
-          i === editState.srcData.threads[idx].linked.length - 1
+          i === editState.srcData.threads[nidx].linked.length - 1
         ) {
-          (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(form, linkwrap, false, true, 200)
+          editState.srcData.threads[nidx].linked.push(store.linked.value)
+          ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(form, linkwrap, false, true, 200)
         } else {
-          var nextSibling = form.childNodes[i]
+          editState.srcData.threads[nidx].linked.splice(ni, 0, store.linked.value)
+          var nextSibling = form.childNodes[ni]
           form.insertBefore(linkwrap, nextSibling)
           ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(linkwrap, 200)
         }
       }
+      toggleAddBtn(addLinkBtn, editState.srcData.threads[nidx].linked, 'linked')
     }
     setLastAction(act)
     act(true)
@@ -285,30 +304,44 @@ function linkInput(form, idx, i) {
   return linkwrap
 }
 
-function threadDistantForm(idx, id) {
+function threadDistantForm(idx, indexLi) {
   var form = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-thread-distant-form")
-
-  var linked = editState.srcData.threads[idx].linked
-
-  var elms = []
-  var len = linked.length
-  if (len) {
-    for (var i = 0; i < len; i++) {
-      var elm = linkInput(form, idx, i)
-      elms.push(elm)
-    }
+  var addLinkBtn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.addBtn)()
+  toggleAddBtn(addLinkBtn, editState.srcData.threads[idx].linked, 'linked')
+  addLinkBtn.addEventListener("click", () => {
+    if(!addLinkBtn.disabled){
+    var nidx = editState.srcData.index.indexOf(indexLi.dataset.id)
+    editState.srcData.threads[nidx].linked.push("")
+    ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(
+      form,
+      linkInput(indexLi, addLinkBtn, form, nidx, editState.srcData.threads[nidx].linked.length - 1),
+      false,
+      true,
+      200
+    )
+    toggleAddBtn(addLinkBtn, editState.srcData.threads[nidx].linked, 'linked')
   }
-  form.append(...elms)
-  var formCnt = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV")
-  var addBtnElm = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.addBtn)()
-  addBtnElm.addEventListener("click", () => {
-    var idx = editState.srcData.index.indexOf(id)
-    var i = editState.srcData.threads[idx].linked.length
-    editState.srcData.threads[idx].linked.push("")
-    ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(form, linkInput(form, idx, i), false, true, 200)
   })
 
-  formCnt.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("linked threads"), form, addBtnElm)
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      editState.srcData.threads[idx],
+      "linked"
+    )
+  ) {
+    editState.srcData.threads[idx].linked = []
+  } else if (editState.srcData.threads[idx].linked.length) {
+    var elms = []
+    for (var i = 0; i < editState.srcData.threads[idx].linked.length; i++) {
+      var elm = linkInput(indexLi, addLinkBtn, form, idx, i)
+      elms.push(elm)
+    }
+    form.append(...elms)
+  }
+
+  var formCnt = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV")
+  formCnt.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("linked threads"), form, addLinkBtn)
+
   return formCnt
 }
 
@@ -317,7 +350,7 @@ function threadLi(id, form) {
 
   li.append(form)
 
-  if (editState.threadId != id) {
+  if (editState.threadId !== id) {
     li.style.display = "none"
   }
   (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.registerUpdateEvt)(function (nState) {
@@ -335,22 +368,14 @@ function threadLi(id, form) {
   return li
 }
 
-function stateUpdate(idx, id) {
-  var newState = Object.assign({}, editState)
-  newState.threadId = id
-  newState.threadIndex = idx
-
-  return newState
-}
-
 function indexLink(idx, id) {
-  var itemState = stateUpdate(idx, id)
+  var itemState = (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.getAltState)(editState, id, idx)
   var indLk = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.baseViewLink)(itemState, false)
   ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.setToggleOnDisplay)(indLk, itemState)
 
   indLk.addEventListener("click", () => {
-    var nidx = editState.srcData.index.indexOf(id)
-    ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(stateUpdate(nidx, id), true)
+    var nidx = editState.srcData.index.indexOf(indLk.parentNode.dataset.id)
+    ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)((0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.getAltState)(editState, id, nidx), true)
   })
 
   return indLk
@@ -364,24 +389,31 @@ function threadElms(idx, id) {
   }
 
   map.index.child = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("LI")
+  map.index.child.dataset.id = id
+
   map.index.link = indexLink(idx, id)
   map.index.child.append(map.index.link)
   setMoveBtns(map.index.child, id)
 
-  var titleCallback = function (input, valid) {
-    if (valid) {
-      var newId = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_11__.convertToId)(input.value)
-      map.index.link.firstChild.textContent = newId
-      setNewValue(["threads", idx, "id"], newId)
-    }
-  }
-  map.distant.child = threadLi(id, threadDistantForm(idx, id))
-  map.local.child = threadLi(id, threadLocalForm(idx, titleCallback))
+  map.distant.child = threadLi(id, threadDistantForm(idx, map.index.child))
+  map.local.child = threadLi(id, threadLocalForm(idx, map.index.child))
 
-  map.index.del = deleteThreadElm(map.local.child, map.distant.child, id)
+  map.index.del = deleteThreadElm(
+    map.local.child,
+    map.distant.child,
+    map.index.child
+  )
   map.index.child.append(map.index.del)
 
   return map
+}
+
+function resetActions(){
+  lastAction = []
+  actCtrls.position = 0
+  actCtrls.count = 0
+  ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.toggleNavEnd)(actCtrls)
+
 }
 
 function setLastAction(callback) {
@@ -402,13 +434,13 @@ function setLastAction(callback) {
   toggleBtn(saveBtn, false)
 }
 
-function deleteEvent(localLi, distantLi, id) {
+function deleteEvent(localLi, distantLi, indexLi) {
+  var id = indexLi.dataset.id
   var idx = editState.srcData.index.indexOf(id)
-  var indexNode = editIndex.childNodes[idx]
   var len = editState.srcData.index.length
   var map = {
     index: id,
-    threads: editState.srcData.threads[idx],
+    threads: Object.assign({}, editState.srcData.threads[idx]),
   }
 
   var act = function (redo) {
@@ -417,20 +449,26 @@ function deleteEvent(localLi, distantLi, id) {
         editState.srcData[field].splice(idx, 1)
       })
 
-      editState.threadIndex = idx - 1
-      editState.threadId = editState.srcData.index[idx - 1]
+      if (len > 1) {
+        if (idx === 0) {
+          indexLi.nextSibling.dispatchEvent(upDownEvent)
+        } else if (idx === len - 1) {
+          indexLi.previousSibling.dispatchEvent(upDownEvent)
+        }
+      }
 
-      ;[distantLi, localLi, indexNode].forEach((elm) => {
+      ;[distantLi, localLi, indexLi].forEach((elm) => {
         (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(elm, 200, function () {
           elm.remove()
         })
       })
-      if (len > 1) {
-        if (idx === 0) {
-          indexNode.nextSibling.dispatchEvent(upDownEvent)
-        } else if (idx === len - 1) {
-          indexNode.previousSibling.dispatchEvent(upDownEvent)
-        }
+
+      if (editState.threadId === id) {
+        editState.threadId = "/"
+        editState.threadIndex = -1
+        ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(editState, true, true)
+      } else if (editState.threadIndex > idx) {
+        editState.threadIndex--
       }
     } else {
       Object.keys(map).forEach((field) => {
@@ -439,33 +477,35 @@ function deleteEvent(localLi, distantLi, id) {
 
       if (idx < len - 1) {
         var next = editIndex.childNodes[idx]
-        editIndex.insertBefore(indexNode, next)
+        editIndex.insertBefore(indexLi, next)
         if (idx === 0) {
           next.dispatchEvent(upDownEvent)
         }
       } else {
-        editIndex.append(indexNode)
+        editIndex.append(indexLi)
         if (len > 1) {
-          indexNode.previousSibling.dispatchEvent(upDownEvent)
+          indexLi.previousSibling.dispatchEvent(upDownEvent)
         }
       }
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(indexNode, 200)
+
       editLocal.append(localLi)
       editDistant.append(distantLi)
-      indexNode.firstChild.click()
+      ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(indexLi, 200)
+      indexLi.firstChild.click()
     }
+    toggleAddBtn(addThreadBtn, editState.srcData.index, 'threads')
   }
   setLastAction(act)
   act(true)
 }
 
-function deleteThreadElm(localLi, distantLi, id) {
+function deleteThreadElm(localLi, distantLi, indexLi) {
   var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("BUTTON", "nx-delete-thread")
   btn.type = "button"
   btn.textContent = "-"
 
   btn.addEventListener("click", function () {
-    deleteEvent(localLi, distantLi, id)
+    deleteEvent(localLi, distantLi, indexLi)
   })
   return btn
 }
@@ -484,6 +524,11 @@ function setThreadIndex(ref) {
   } else if (typeof editState.srcData.threads[ref[1]] === "undefined") {
     editState.srcData.threads[ref[1]] = {}
   }
+}
+
+function setThreadId(ref, value) {
+  editState.srcData.index.splice(ref[1], 1, value)
+  editState.srcData.threads[ref[1]].id = value
 }
 
 function setThreadInfo(ref, value) {
@@ -506,24 +551,25 @@ function setContentValue(ref, value) {
 }
 
 function setLinkedValue(ref, value) {
-  if (!editState.srcData.threads[ref[1]].linked.length) {
+  if (!editState.srcData.threads[ref[1]].linked) {
     editState.srcData.threads[ref[1]].linked = []
-  } else if (editState.srcData.threads[ref[1]].linked.indexOf(ref[2]) === -1) {
-    editState.srcData.threads[ref[1]].linked.push(value)
-  } else {
+  } 
     editState.srcData.threads[ref[1]].linked[ref[3]] = value
-  }
 }
 
 function setNewValue(ref, value) {
   if (editState.srcData === null) {
     editState.srcData = {}
+    editState.srcData.index = []
   }
   if (ref[0] === "author") {
     return setAuthorValue(ref, value)
   }
   setThreadIndex(ref)
 
+  if (ref[2] === "id") {
+    return setThreadId(ref, value)
+  }
   if (!["linked", "content"].includes(ref[2])) {
     return setThreadInfo(ref, value)
   }
@@ -604,12 +650,17 @@ function inputElm(ref, callback = null, store = null) {
   var fdbck = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_10__.invalidSp)()
   lb.append(indc, fdbck)
 
-  switch (ident) {
+  switch (field) {
     case "url":
       indc.textContent = "[http]"
       inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.urlPattern
       break
+    case "linked":
+      indc.textContent = "[http]"
+      inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.urlPattern
+      break
     case "id":
+      indc.textContent = "[A-Za-z0-9-][3-36]"
       inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.idPattern
       break
     case "type":
@@ -645,20 +696,93 @@ function inputElm(ref, callback = null, store = null) {
   return wrap
 }
 
+function isUnique(haystack, needle, excludeIdx) {
+  if (haystack.indexOf(needle) !== -1) {
+    for (var c = 0; c < haystack.length; c++) {
+      if (c !== excludeIdx && haystack[c] === needle) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+function uniqueId(id, idx) {
+  id = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_11__.convertToId)(id)
+  if (!isUnique(editState.srcData.index, id, idx)) {
+    var sp = id.split("-")
+    var last = sp.pop()
+    var incr
+    if (!isNaN(last)) {
+      incr = parseInt(last)
+      incr++
+    } else {
+      sp.push(last)
+      incr = 1
+    }
+    id = sp.join("-")
+    while (editState.srcData.index.includes(id + "-" + incr)) {
+      incr++
+    }
+    id += "-" + incr
+  }
+  return id
+}
+
 function inputEvtHandler(ref, inp, fdbck, callback) {
-  var valid = false
-  var icsrc
-  if (inp.checkValidity()) {
-    valid = true
+  var success = function () {
     setNewValue(ref, inp.value)
-    icsrc = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.validB64
+    setFeedbackIcon(fdbck, true)
+    if (typeof callback === "function") {
+      callback(inp)
+    }
+  }
+
+  var failure = function () {
+    setFeedbackIcon(fdbck, false)
+  }
+
+  var valid = inp.checkValidity()
+
+  if ((valid && ref.includes("url")) || ref.includes("linked")) {
+    valid = (0,_i_is_as_i_does_nexus_core_src_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_7__.isValidUrl)(inp.value)
+    if (valid && ref.includes("linked")) {
+      valid = isUnique(
+        editState.srcData.threads[ref[1]].linked,
+        inp.value,
+        ref[3]
+      )
+      if (valid) {
+        return (0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_9__.getSrcData)(inp.value)
+          .then(() => {
+            success()
+          })
+          .catch(() => {
+            failure()
+          })
+      }
+    }
+  } else if (ref.includes("id")) {
+    var nId = uniqueId(inp.value, ref[1])
+    if (nId !== inp.value) {
+      inp.value = nId
+    }
+    valid = true
+  }
+
+  if (valid) {
+    success()
   } else {
-    icsrc = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.invalidB64
+    failure()
+  }
+}
+
+function setFeedbackIcon(fdbck, valid) {
+  var icsrc = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.invalidB64
+  if (valid) {
+    icsrc = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.validB64
   }
   fdbck.firstChild.src = icsrc
-  if (typeof callback === "function") {
-    callback(inp, valid, fdbck)
-  }
 }
 
 function setInputEvt(ref, inp, fdbck, callback) {
@@ -704,7 +828,8 @@ function triggerUndoRedo(ctrl) {
 
 function setAuthorForm() {
   authorForm = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-edit-author")
-  ;["handle", "url", "about"].forEach((field) => {
+  var fields = ["handle", "url", "about"]
+  fields.forEach((field) => {
     authorForm.append(inputElm(["author", field], null, authorInputs))
   })
 }
@@ -769,6 +894,7 @@ function downloadBtn() {
 function resetAuthorForm() {
   for (let [field, input] of Object.entries(authorInputs)) {
     input.value = editState.srcData.author[field]
+    input.dispatchEvent(changeEvent)
   }
 }
 
@@ -778,12 +904,14 @@ function resetData(nData) {
   if (nData === null) {
     nData = (0,_NxStarters_js__WEBPACK_IMPORTED_MODULE_8__.newData)()
   }
+  resetActions()
 
   var act = function (redo) {
     if (editState.srcData.threads.length) {
-      ;[editIndex, editLocal, editDistant].forEach((parent) => {
+      var parents = [editIndex, editLocal, editDistant]
+      parents.forEach((parent) => {
         Array.from(parent.childNodes).forEach((child) => {
-          (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(child, 150, function () {
+          ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(child, 150, function () {
             child.remove()
           })
         })
@@ -791,6 +919,7 @@ function resetData(nData) {
     }
 
     if (redo) {
+
       editState.srcData = nData
     } else {
       editState.srcData = prevData
@@ -803,9 +932,8 @@ function resetData(nData) {
     resetAuthorForm()
     setThreads(true)
   }
-
-  setLastAction(act)
   act(true)
+  setLastAction(act)
 }
 
 function newDocumenBtn() {
@@ -834,7 +962,7 @@ function fileInput() {
   inp.type = "file"
   inp.accept = "application/json"
   inp.addEventListener("change", function (evt) {
-    ;(0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_9__.loadSrcFile)(evt)
+    ;(0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_9__.loadSrcFile)(evt, true)
       .then((data) => {
         data.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_9__.getThreadsList)(data)
         resetData(data)
@@ -843,6 +971,7 @@ function fileInput() {
         (0,_i_is_as_i_does_nexus_core_src_logs_NxLog__WEBPACK_IMPORTED_MODULE_13__.logErr)(err.message)
         displayFeedback("Invalid source")
       })
+    inp.value = ""
   })
   inp.style.display = "none"
   return inp
@@ -909,9 +1038,11 @@ function authorPart() {
   dv.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("author"), authorForm)
   return dv
 }
+
 function indexPart() {
   var dv = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-list")
-  dv.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("threads"), editIndex, addThreadBtn())
+  setAddThreadBtn()
+  dv.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("threads"), editIndex, addThreadBtn)
   return dv
 }
 
@@ -923,7 +1054,6 @@ function setThreadsForms() {
 }
 function setEditMenu() {
   editMenu = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-menu")
-
   editMenu.append(editNav(), editActions())
 }
 
@@ -931,7 +1061,7 @@ function getEditMenu() {
   return editMenu
 }
 
-function instanceSwitch(viewerInst, editInst) {
+function instanceSwitch(readerInst, editInst) {
   instanceBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("A", "nx-edit-switch")
   instanceBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.previewB64, 25))
 
@@ -940,10 +1070,10 @@ function instanceSwitch(viewerInst, editInst) {
     ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(editState, true, true)
     if (previewOn) {
       instanceBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.editB64
-      ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.replaceDiversion)(editInst, viewerInst)
+      ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.replaceDiversion)(editInst, readerInst)
     } else {
       instanceBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_14__.previewB64
-      ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.replaceDiversion)(viewerInst, editInst)
+      ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_2__.replaceDiversion)(readerInst, editInst)
     }
   })
 
@@ -1129,7 +1259,7 @@ function resolveMediaType(val) {
 }
 
 function convertToId(title) {
-    return (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiacritics)(title.trim().replace(/[\s_]/, "-"));
+  return (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiacritics)(title).trim().replace(/[^A-Za-z0-9]+/g, "-").replace(/(^-|-$)+/g, '')
   }
 
   function newState(data, url = "nexus-tmp", id = "/", idx = -1){
@@ -1155,7 +1285,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "editorElms": () => (/* binding */ editorElms)
 /* harmony export */ });
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
-/* harmony import */ var _viewer_NxViewer_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../viewer/NxViewer.js */ "./src/viewer/NxViewer.js");
+/* harmony import */ var _reader_NxReader_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../reader/NxReader.js */ "./src/reader/NxReader.js");
 /* harmony import */ var _NxEdit_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NxEdit.js */ "./src/editor/NxEdit.js");
 
 
@@ -1166,7 +1296,7 @@ function editorElms(seed){
 
     (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.setEditState)(seed.state, seed.nxelm);
 
-    var viewerInst = (0,_viewer_NxViewer_js__WEBPACK_IMPORTED_MODULE_1__.viewerElms)(seed);
+    var readerInst = (0,_reader_NxReader_js__WEBPACK_IMPORTED_MODULE_1__.readerElms)(seed);
   
    var indexPart = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_0__.getElm)("DIV");
    indexPart.append((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.editIndexBlock)());
@@ -1180,7 +1310,7 @@ function editorElms(seed){
     ], [], "edit")]);
 
     var editor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_0__.getElm)('DIV','nx-editor')
-    editor.append(editInst, (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.instanceSwitch)(viewerInst, editInst))
+    editor.append(editInst, (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.instanceSwitch)(readerInst, editInst))
     
     return editor
   }

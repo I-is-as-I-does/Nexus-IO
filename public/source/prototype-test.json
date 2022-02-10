@@ -20,7 +20,11 @@
                     "caption": "Caption field"
                 }
             },
-            "linked": ["http://127.0.0.1:5500/public/source/limits-test.json#lots-of-lots"]
+            "linked": [
+                "http://127.0.0.1:5500/public/source/limits-test.json",
+                "http://127.0.0.1:5500/public/source/legacy-test.json",
+                "http://127.0.0.1:5500/public/source/legacy-test.json#Thread-I",
+                "http://127.0.0.1:5500/public/source/limits-test.json#lots-of-lots"]
         },
         {
             "id": "Self-linking-Test",
@@ -55,6 +59,8 @@
                 }
             },
             "linked": [
+                "http://127.0.0.1:5500/public/source/legacy-test.json",
+                "http://127.0.0.1:5500/public/source/legacy-test.json#No-exist",
                 "http://localhost:0000/nexus/source/prototype-test.json#lots-of-linked-test"
             ]
         },

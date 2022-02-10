@@ -4,7 +4,7 @@ import {
   insertDiversion,
   replaceDiversion,
 } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
-import { registerUpdateEvt } from "../shared/NxState.js";
+import { getAltState, registerUpdateEvt } from "../shared/NxState.js";
 import { authorHandle, authorUrl, viewLink } from "./NxIdent.js";
 import { blockWrap, getElm, lines } from "../shared/NxCommons.js";
 
@@ -47,10 +47,8 @@ function setIndexList(state) {
 }
 
 function indexLi(state, id, index) {
-  var altState = Object.assign({}, state);
 
-  altState.threadId = id;
-  altState.threadIndex = index;
+  var altState = getAltState(state, id, index)
 
   var li = getElm("LI");
   li.append(viewLink(altState, false));

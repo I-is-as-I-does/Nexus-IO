@@ -253,7 +253,7 @@ var __webpack_exports__ = {};
   !*** ./src/NxIO.js ***!
   \*********************/
 (function () { 
-    Promise.all(/*! import() */[__webpack_require__.e("NxIOLib"), __webpack_require__.e("NxIOView"), __webpack_require__.e("NxIOEdit")]).then(__webpack_require__.bind(__webpack_require__, /*! ./shared/NxStart.js */ "./src/shared/NxStart.js")).then(NxStart => {
+    Promise.all(/*! import() */[__webpack_require__.e("NxIOLib"), __webpack_require__.e("NxIORead"), __webpack_require__.e("NxIOEdit")]).then(__webpack_require__.bind(__webpack_require__, /*! ./shared/NxStart.js */ "./src/shared/NxStart.js")).then(NxStart => {
         NxStart.init()
     })
   })();

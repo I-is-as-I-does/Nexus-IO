@@ -60,7 +60,7 @@ export function isStateUnseen(state){
   return false
 }
 
-export function dataToState(dataUrl, threadId, data){
+export function dataToState(dataUrl, threadId, data, acceptNoId = false){
   data.index = getThreadsList(data)
     var state = {
       dataUrl: dataUrl,
@@ -70,7 +70,13 @@ export function dataToState(dataUrl, threadId, data){
     };
 
     if (state.threadIndex === -1) {
-      setDefaultThread(state)
+      if(acceptNoId){
+        if(state.threadId !== '/'){
+          state.threadId = '/'
+        }
+      } else {
+        setDefaultThread(state)
+      }   
     }
     return state;
 }
@@ -80,9 +86,9 @@ export function setDefaultThread(state){
   state.threadId = state.srcData.index[0]
 }
 
-export function resolveState(dataUrl, threadId) {
+export function resolveState(dataUrl, threadId, acceptNoId = false) {
   return getSrcData(dataUrl).then((data) => {
-  return dataToState(dataUrl, threadId, data)
+  return dataToState(dataUrl, threadId, data, acceptNoId)
   });
 }
 
@@ -132,4 +138,12 @@ export function getBuffertime(){
   return bufferTime;
 }
 
+
+export function getAltState(state, nId, nIndex){
+  var altState = Object.assign({}, state);
+
+  altState.threadId = nId;
+  altState.threadIndex = nIndex;
+  return altState
+}
 

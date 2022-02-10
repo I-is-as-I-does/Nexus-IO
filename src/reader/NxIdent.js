@@ -1,6 +1,6 @@
 
 import { vSplitFlap } from "@i-is-as-i-does/valva/src/modules/transitions";
-import { registerUpdateEvt, triggerUpdate, isStateUnseen } from "../shared/NxState.js";
+import { registerUpdateEvt, triggerUpdate, isStateUnseen, getAltState } from "../shared/NxState.js";
 import { baseViewLink, getElm, setToggleOnDisplay } from "../shared/NxCommons.js";
 import { getStoredItem, storeItem } from '@i-is-as-i-does/nexus-core/src/storg/NxStorage.js'
 import { miniUrl } from "@i-is-as-i-does/jack-js/src/modules/Web.js";
@@ -100,12 +100,8 @@ export function authorIndexLink(state, update = false) {
   var auth = getElm("A", "nx-author-link");
   auth.append(authorHandle(state, update));
 
-  var newState = {
-    dataUrl: state.dataUrl,
-    srcData: state.srcData,
-    threadId: "/",
-    threadIndex: -1
-  };
+  var newState = getAltState(state, '/', -1)
+  
   auth.addEventListener("click", function () {
 triggerUpdate(newState, "/");
   });
