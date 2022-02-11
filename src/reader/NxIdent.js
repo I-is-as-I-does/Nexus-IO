@@ -84,7 +84,7 @@ export function setToggleUnseen(viewlk, state) {
 
 export function viewLink(state, update = false) {
   var viewlk = baseViewLink(state, update);
-  if (state.threadId != "/") {
+  if (state.threadId !== "/") {
     setToggleOnDisplay(viewlk, state);
     setToggleUnseen(viewlk, state);
   }
@@ -101,6 +101,7 @@ export function authorIndexLink(state, update = false) {
   auth.append(authorHandle(state, update));
 
   var newState = getAltState(state, '/', -1)
+  setToggleOnDisplay(auth, newState)
   
   auth.addEventListener("click", function () {
 triggerUpdate(newState, "/");

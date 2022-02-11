@@ -255,7 +255,7 @@ function setToggleUnseen(viewlk, state) {
 
 function viewLink(state, update = false) {
   var viewlk = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_2__.baseViewLink)(state, update);
-  if (state.threadId != "/") {
+  if (state.threadId !== "/") {
     (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_2__.setToggleOnDisplay)(viewlk, state);
     setToggleUnseen(viewlk, state);
   }
@@ -272,6 +272,7 @@ function authorIndexLink(state, update = false) {
   auth.append(authorHandle(state, update));
 
   var newState = (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_1__.getAltState)(state, '/', -1)
+  ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_2__.setToggleOnDisplay)(auth, newState)
   
   auth.addEventListener("click", function () {
 ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_1__.triggerUpdate)(newState, "/");
@@ -1627,9 +1628,6 @@ function registerUpdateEvt(callback, onSrcChange = false) {
 function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
 
     var srcChanged = state.dataUrl != currentState.dataUrl;
-    if(state.threadId === '/'){
-      setDefaultThread(state)
-    }
 
     if (forceTrigger || srcChanged || state.threadId != currentState.threadId) {
 

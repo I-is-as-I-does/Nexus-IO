@@ -192,6 +192,9 @@ vertical-align: top;
     padding-top: 1rem;
 }
 
+.nx .nx-threads-list ul li {
+    margin-top:5px
+}
 .nx .nx-block>*, .nx .nx-main-block > * {
     max-width: 100%;
 }
@@ -296,7 +299,6 @@ vertical-align: top;
 
 .nx section a.nx-view-link {
     display: block;
-    margin-top: 4px;
 }
 
 .nx section a.nx-view-link:before {

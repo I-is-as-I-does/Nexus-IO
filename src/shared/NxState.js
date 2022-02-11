@@ -95,9 +95,6 @@ export function registerUpdateEvt(callback, onSrcChange = false) {
 export function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
 
     var srcChanged = state.dataUrl != currentState.dataUrl;
-    if(state.threadId === '/'){
-      setDefaultThread(state)
-    }
 
     if (forceTrigger || srcChanged || state.threadId != currentState.threadId) {
 
