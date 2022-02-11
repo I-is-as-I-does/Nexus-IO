@@ -13,5 +13,5 @@ export function readerElms(seed){
    ([historyBlock(seed.state)], [
     mainIndexBlock(seed.state),
     mainThreadBlock(seed.state)
-     ], [sourceBlock(seed.state, seed.styleUrl, seed.editMode)])]);
+     ], [sourceBlock(seed.state, seed.styleUrl, seed.editMode)], 'reader')]);
 }

@@ -1,6 +1,6 @@
 
 import { isNonEmptyStr } from "@i-is-as-i-does/jack-js/src/modules/Check.js";
-import { easeIn, easeOut, insertDiversion, replaceDiversion } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
+import { replaceDiversion, insertDiversion, easeIn, easeOut} from "@i-is-as-i-does/valva/src/modules/aliases.js";
 import { getAltState, registerUpdateEvt, resolveState } from "../shared/NxState.js";
 import {
   authorIndexLink,
@@ -58,18 +58,21 @@ if(ready === 2){
       toggleNavEnd(linkedCtrls); 
       setFirstDistantContent(linked.length > 1);
     }
-    easeIn(threadBlocks, 150)
+    easeIn(threadBlocks, 200)
 }
 }
 
 function updateThreadBlocks(state) {
-  ready = 0
-  spinner.startSpin()
 
-  easeOut(threadBlocks, 150, function(){
-    spinElm.style.display = 'block'
+  var newThreadData = resolveThreadData(state);
+  easeOut(threadBlocks, 200, function(){
 
-    var newThreadData = resolveThreadData(state);
+    if(newThreadData){
+      spinner.startSpin()
+      ready = 0
+      spinElm.style.display = 'block'
+    }
+
     resetDistantLinks(state.dataUrl, newThreadData);
   
     var newContent = threadContent(newThreadData, false);
@@ -87,7 +90,7 @@ function descriptionElm(threadData) {
 
 function resolveThreadData(state) {
   var threadData = null;
-  if (state.threadId && state.threadId !== "/") {
+  if (state && state.threadIndex > -1) {
     threadData = state.srcData.threads[state.threadIndex]
   }
   return threadData;
@@ -144,7 +147,7 @@ function removeDistantContent(transition = false){
   var prevElm = currentElm.firstChild;
   if(prevElm){
     if(transition){
-      easeOut(prevElm,150,function(){
+      easeOut(prevElm,200,function(){
         prevElm.remove();
       });
     } else {
@@ -169,7 +172,7 @@ function setCurrentLink(){
   if(currentElm.firstChild){
       replaceDiversion(currentElm.firstChild, nw)
   } else {
-    insertDiversion(currentElm, nw, false, true, 150, callb);
+    insertDiversion(currentElm, nw, false, true, 200, callb);
   }
 } else {
   removeDistantContent(true);
@@ -269,7 +272,7 @@ function threadContent(threadData, isDistant = false) {
   var callbsent = false
   if (threadData) {
   var elms = [dateElm(threadData), contentBody(threadData)]
-  if (threadData.content.media && threadData.content.media.url) {
+  if (threadData.content.media && threadData.content.media.url && threadData.content.media.url.length) {
     callbsent = true
     elms.push(mediaElm(threadData, callb))
   }
@@ -339,11 +342,13 @@ export function threadTextElm(threadData, ref) {
 
 export function mainThreadBlock(state) {
   var threadData = resolveThreadData(state);
+
   var mainBlock = getElm('DIV', 'nx-main-block nx-thread')
- 
   setSpinner()
+
+ if(threadData){
   spinner.startSpin()
-  
+}
   var blocks = [
     threadHeader(state, threadData),
     spinElm, 

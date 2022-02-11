@@ -3,7 +3,7 @@
 import { getSrcData, getThreadsList } from "@i-is-as-i-does/nexus-core/src/load/NxSrc.js";
 import { isThreadContentUnseen, registerThreadVisit } from "@i-is-as-i-does/nexus-core/src/storg/NxMemory.js";
 
-const bufferTime = 400;
+
 var currentState = {
       dataUrl: null,
       srcData: null,
@@ -12,9 +12,9 @@ var currentState = {
     };
     
 var updateStore = { onChange: [], onSrcChange: [] };
-var updateRunning = false;
 
-function triggerCallbacks(state,triggerAll) {
+
+function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
   var ks = ["onChange"];
   if (triggerAll) {
     ks.push("onSrcChange");
@@ -23,20 +23,12 @@ function triggerCallbacks(state,triggerAll) {
   ks.forEach((k) => {
     if (updateStore[k].length) {
      updateStore[k].forEach((callback) => {
-        callback(state);
+        callback(state, skipHistoryUpdate);
       });
     }
   });
 }
 
-function updateTimeout() {
-  setTimeout(
-    function () {
-      updateRunning = false;
-    },
-    bufferTime
-  );
-}
 
 export function concatSrc(state){
   var src = state.dataUrl
@@ -101,14 +93,14 @@ export function registerUpdateEvt(callback, onSrcChange = false) {
 }
 
 export function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
-  if (!updateRunning) {
+
     var srcChanged = state.dataUrl != currentState.dataUrl;
     if(state.threadId === '/'){
       setDefaultThread(state)
     }
 
     if (forceTrigger || srcChanged || state.threadId != currentState.threadId) {
-      updateRunning = true;
+
       if (!skipHistoryUpdate) {
         registerThreadVisit(concatSrc(currentState), getTimestamp(currentState));
       }
@@ -116,9 +108,8 @@ export function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = f
       var resetIndex = srcChanged || forceTrigger;
       currentState = Object.assign({},state);
 
-      triggerCallbacks(state, resetIndex);
-      updateTimeout();
-    }
+      triggerCallbacks(state, resetIndex, skipHistoryUpdate);
+
   }
 }
 
@@ -132,10 +123,6 @@ export function setOriginState(state) {
     return true;
   }
   return false;
-}
-
-export function getBuffertime(){
-  return bufferTime;
 }
 
 

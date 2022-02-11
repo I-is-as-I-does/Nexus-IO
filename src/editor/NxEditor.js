@@ -1,28 +1,42 @@
 
-import { appHeaderWithLang, getElm, instanceWrap, serviceWrap } from "../shared/NxCommons.js";
-import { readerElms } from "../reader/NxReader.js";
-import { editDistantBlock, editIndexBlock, editLocalBlock, getEditMenu, setEditState, instanceSwitch } from "./NxEdit.js";
+import { readerElms } from "../reader/NxReader.js"
+import {
+  appHeaderWithLang,
+  getElm,
+  instanceWrap,
+  serviceWrap,
+} from "../shared/NxCommons.js"
+import {
+  editDistantBlock,
+  authorBlock,
+  editIndexBlock,
+  editLocalBlock,
+  setEditState,
+  getEditState,
+} from "./NxEdit.js"
+import { getEditMenu } from "./NxEditMenu.js"
+import { instanceSwitch } from "./NxEditSwitch.js"
 
-export function editorElms(seed){
+export function editorElms(seed) {
+  setEditState(seed.state, seed.nxelm)
+  var indexMain = getElm("DIV", "nx-main-block nx-index")
+  indexMain.append(authorBlock(), editIndexBlock())
+  var threadMain = getElm("DIV", "nx-main-block nx-thread")
+  threadMain.append(editLocalBlock(), editDistantBlock())
 
-    setEditState(seed.state, seed.nxelm);
+  var editInst = instanceWrap(appHeaderWithLang(), [
+    serviceWrap([getEditMenu()], [indexMain, threadMain], [], "edit"),
+  ])
 
-    var readerInst = readerElms(seed);
-  
-   var indexPart = getElm("DIV");
-   indexPart.append(editIndexBlock());
-   var threadPart = getElm("DIV");
-   threadPart.append(editLocalBlock(),editDistantBlock());
-   
-   var editInst = instanceWrap(appHeaderWithLang(),[serviceWrap
-  ([getEditMenu()], [
-    indexPart,
-    threadPart
-    ], [], "edit")]);
-
-    var editor = getElm('DIV','nx-editor')
-    editor.append(editInst, instanceSwitch(readerInst, editInst))
-    
-    return editor
+  var seed = {
+    editMode: true,
+    state: Object.assign({}, getEditState()),
   }
-  
+  var readerInst = readerElms(seed)
+  readerInst.style.display = "none"
+  var switchBtn = instanceSwitch(editInst, readerInst)
+
+  var editor = getElm("DIV", "nx-editor")
+  editor.append(editInst, readerInst, switchBtn)
+  return editor
+}

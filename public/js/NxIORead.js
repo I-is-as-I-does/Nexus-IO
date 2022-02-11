@@ -11,7 +11,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "historyBlock": () => (/* binding */ historyBlock)
 /* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/legacy/Valva-v1.js */ "./node_modules/@i-is-as-i-does/valva/src/legacy/Valva-v1.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
 /* harmony import */ var _NxIdent_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NxIdent.js */ "./src/reader/NxIdent.js");
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Style_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Style.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Style.js");
@@ -47,13 +47,9 @@ var histCtrls = {
 
 function historyNav() {
   var wrp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-history-nav");
-  (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.setHistoryControls)(histCtrls, function(ctrl){
-    var postn = histCtrls.position;
-    if(ctrl == 'prev'){
-      postn += 1;
-    }
+  (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.setHistoryControls)(histCtrls, function(ctrl, pos){
     var target =
-    historyList.children[postn].querySelector(
+    historyList.children[pos +1].querySelector(
       ".nx-thread-title"
     );
   target.click();
@@ -68,11 +64,11 @@ function historyToggleElm() {
     if (tggl.textContent == "≙") {
       tggl.textContent = "≚";
       tggl.classList.remove("nx-active");
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.easeOut)(historyElm, 200);
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.easeOut)(historyElm, 200);
     } else {
       tggl.textContent = "≙";
       tggl.classList.add("nx-active");
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.easeIn)(historyElm, 200);
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.easeIn)(historyElm, 200);
       (0,_i_is_as_i_does_jack_js_src_modules_Style_js__WEBPACK_IMPORTED_MODULE_3__.autoScrollToBottom)(historyList);
     }
   });
@@ -87,21 +83,21 @@ function setHistoryListElm(state) {
   historyList.append(first);
   if(state && state.srcData){
   historyState = state;
-  historyList.append(historyItm(state));
+  historyList.append(historyItm(state, 0));
 }
   historyElm = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-history-drawer");
   historyElm.append(historyList);
   historyElm.style.display = "none";
- (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.registerUpdateEvt)(function (newState) {
-    historyEvent(newState);
+ (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.registerUpdateEvt)(function (newState, skipHistoryUpdate) {
+    historyEvent(newState, skipHistoryUpdate);
   });
 
 }
 
 
-function historyEvent(state) {
+function historyEvent(state, skipHistoryUpdate) {
 
-  if (!isHistoryEvent && (state.dataUrl != historyState.dataUrl || state.threadId != historyState.threadId)) {
+  if (!skipHistoryUpdate && !isHistoryEvent && (state.dataUrl !== historyState.dataUrl || state.threadId !== historyState.threadId)) {
     historyState = state;
     if (histCtrls.count > historyMax) {
       historyList.children[1].remove();      
@@ -110,35 +106,36 @@ function historyEvent(state) {
     }
 
     histCtrls.position = histCtrls.count-1;
-    var itm = historyItm(state);
-    (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.insertDiversion)(historyList, itm, false, true, 200, function () {
+    var itm = historyItm(state, histCtrls.position);
+    (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.insertDiversion)(historyList, itm, false, true, 200, function () {
       (0,_i_is_as_i_does_jack_js_src_modules_Style_js__WEBPACK_IMPORTED_MODULE_3__.autoScrollToBottom)(historyList);
     });
 
     (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.toggleNavEnd)(histCtrls);
-  }
+  } 
 }
 
-function viewElms(state){
+function viewElms(state, pos){
 return [(0,_NxIdent_js__WEBPACK_IMPORTED_MODULE_2__.authorIndexLink)(state, false),
   (0,_NxIdent_js__WEBPACK_IMPORTED_MODULE_2__.authorUrl)(state, false),
-  historyViewLink(state, false)];
+  historyViewLink(state, pos)];
 }
 
-function historyItm(state) {
+function historyItm(state, pos) {
 
   var itm = document.createElement("LI");
-    itm.append(...viewElms(state));
+    itm.append(...viewElms(state, pos));
   return itm;
 }
 
-function historyViewLink(state) {
+function historyViewLink(state, pos) {
   var viewlk = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.baseViewLink)(state, false);
   (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.setToggleOnDisplay)(viewlk, state);
 
   viewlk.addEventListener("click", () => {
     isHistoryEvent = true;
     (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(state, true);
+    histCtrls.position = pos;
     isHistoryEvent = false;
   });
   return viewlk;
@@ -296,7 +293,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "mainIndexBlock": () => (/* binding */ mainIndexBlock)
 /* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/legacy/Valva-v1.js */ "./node_modules/@i-is-as-i-does/valva/src/legacy/Valva-v1.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
 /* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
 /* harmony import */ var _NxIdent_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NxIdent.js */ "./src/reader/NxIdent.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
@@ -313,7 +310,7 @@ function aboutElm(state) {
 
   ab.append(aboutLines(state));
  (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_1__.registerUpdateEvt)(function (newState) {
-    (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiversion)(ab.firstChild, aboutLines(newState));
+    (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiversion)(ab.firstChild, aboutLines(newState));
   }, true);
   return ab;
 }
@@ -364,14 +361,14 @@ function changeThreadsList(state) {
   var count = 0;
   if (chlen) {
     var rmv = function (child) {
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.easeOut)(child, 200, function () {
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.easeOut)(child, 200, function () {
         child.remove();
       });
     };
     for (var x = 0; x < chlen; x++) {
       if (nwlen > x) {
         var nlink = indexLi(state, items[x], x);
-        (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiversion)(childr[x], nlink);
+        (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiversion)(childr[x], nlink);
         count++;
       } else {
         rmv(childr[x]);
@@ -380,7 +377,7 @@ function changeThreadsList(state) {
   }
   if (count < nwlen) {
     for (var y = count; y < nwlen; y++) {
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_0__.insertDiversion)(indexList, indexLi(state, items[y], y), false, true, 200);
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.insertDiversion)(indexList, indexLi(state, items[y], y), false, true, 200);
     }
   }
 }
@@ -489,7 +486,7 @@ function readerElms(seed){
    ([(0,_NxHistory_js__WEBPACK_IMPORTED_MODULE_0__.historyBlock)(seed.state)], [
     (0,_NxIndex_js__WEBPACK_IMPORTED_MODULE_1__.mainIndexBlock)(seed.state),
     (0,_NxThread_js__WEBPACK_IMPORTED_MODULE_4__.mainThreadBlock)(seed.state)
-     ], [(0,_NxSource_js__WEBPACK_IMPORTED_MODULE_3__.sourceBlock)(seed.state, seed.styleUrl, seed.editMode)])]);
+     ], [(0,_NxSource_js__WEBPACK_IMPORTED_MODULE_3__.sourceBlock)(seed.state, seed.styleUrl, seed.editMode)], 'reader')]);
 }
 
 /***/ }),
@@ -505,7 +502,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "sourceBlock": () => (/* binding */ sourceBlock)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Stock_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Stock.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Stock.js");
-/* harmony import */ var _i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/legacy/Valva-v1.js */ "./node_modules/@i-is-as-i-does/valva/src/legacy/Valva-v1.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxElmTranslate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js");
 /* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
@@ -569,11 +566,11 @@ function toggleLink() {
     if (lk.textContent == altText) {
       lk.textContent = text;
       lk.classList.remove("nx-active");
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(drawerElm, 200);
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(drawerElm, 200);
     } else {
       lk.textContent = altText;
       lk.classList.add("nx-active");
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.easeIn)(drawerElm, 100, function () {
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.easeIn)(drawerElm, 100, function () {
         drawerElm.scrollIntoView({
           block: "end",
           behavior: "smooth",
@@ -623,7 +620,7 @@ function copyLink(snpElm) {
 
   copyLk.addEventListener("click", () =>
     (0,_i_is_as_i_does_jack_js_src_modules_Stock_js__WEBPACK_IMPORTED_MODULE_0__.copyToClipboard)(snpElm.textContent, () => {
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.timedFadeToggle)(copyTooltip, 1000);
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.timedFadeToggle)(copyTooltip, 1000);
     })
   );
   return copyLk;
@@ -650,11 +647,14 @@ function embedContent(state) {
   return "";
 }
 
-function sourceBlock(state, currentStyleUrl, editionSource = false) {
+function sourceBlock(state, currentStyleUrl = null, editionSource = false) {
   if(editionSource){
     editMode = true;
   }
-  if(currentStyleUrl !== _shared_NxCdn_js__WEBPACK_IMPORTED_MODULE_7__.appDefaultCss){
+  if(!currentStyleUrl) {
+    currentStyleUrl = _shared_NxCdn_js__WEBPACK_IMPORTED_MODULE_7__.appDefaultCss
+  }
+  else if(currentStyleUrl !== _shared_NxCdn_js__WEBPACK_IMPORTED_MODULE_7__.appDefaultCss){
     currentStyle = currentStyleUrl
   }
   return (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_2__.blockWrap)("source", snippetsBundle(state), false);
@@ -675,7 +675,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "mainThreadBlock": () => (/* binding */ mainThreadBlock)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Check_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Check.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Check.js");
-/* harmony import */ var _i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/legacy/Valva-v1.js */ "./node_modules/@i-is-as-i-does/valva/src/legacy/Valva-v1.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
 /* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
 /* harmony import */ var _NxIdent_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NxIdent.js */ "./src/reader/NxIdent.js");
 /* harmony import */ var _NxMedia_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxMedia.js */ "./src/reader/NxMedia.js");
@@ -740,18 +740,21 @@ if(ready === 2){
       (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_5__.toggleNavEnd)(linkedCtrls); 
       setFirstDistantContent(linked.length > 1);
     }
-    (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.easeIn)(threadBlocks, 150)
+    (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.easeIn)(threadBlocks, 200)
 }
 }
 
 function updateThreadBlocks(state) {
-  ready = 0
-  spinner.startSpin()
 
-  ;(0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(threadBlocks, 150, function(){
-    spinElm.style.display = 'block'
+  var newThreadData = resolveThreadData(state);
+  (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(threadBlocks, 200, function(){
 
-    var newThreadData = resolveThreadData(state);
+    if(newThreadData){
+      spinner.startSpin()
+      ready = 0
+      spinElm.style.display = 'block'
+    }
+
     resetDistantLinks(state.dataUrl, newThreadData);
   
     var newContent = threadContent(newThreadData, false);
@@ -769,7 +772,7 @@ function descriptionElm(threadData) {
 
 function resolveThreadData(state) {
   var threadData = null;
-  if (state.threadId && state.threadId !== "/") {
+  if (state && state.threadIndex > -1) {
     threadData = state.srcData.threads[state.threadIndex]
   }
   return threadData;
@@ -826,7 +829,7 @@ function removeDistantContent(transition = false){
   var prevElm = currentElm.firstChild;
   if(prevElm){
     if(transition){
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(prevElm,150,function(){
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.easeOut)(prevElm,200,function(){
         prevElm.remove();
       });
     } else {
@@ -849,9 +852,9 @@ function setCurrentLink(){
    var nw = linked[linkedCtrls.position];
 
   if(currentElm.firstChild){
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.replaceDiversion)(currentElm.firstChild, nw)
+      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.replaceDiversion)(currentElm.firstChild, nw)
   } else {
-    (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_1__.insertDiversion)(currentElm, nw, false, true, 150, callb);
+    (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_1__.insertDiversion)(currentElm, nw, false, true, 200, callb);
   }
 } else {
   removeDistantContent(true);
@@ -951,7 +954,7 @@ function threadContent(threadData, isDistant = false) {
   var callbsent = false
   if (threadData) {
   var elms = [dateElm(threadData), contentBody(threadData)]
-  if (threadData.content.media && threadData.content.media.url) {
+  if (threadData.content.media && threadData.content.media.url && threadData.content.media.url.length) {
     callbsent = true
     elms.push((0,_NxMedia_js__WEBPACK_IMPORTED_MODULE_4__.mediaElm)(threadData, callb))
   }
@@ -1021,11 +1024,13 @@ function threadTextElm(threadData, ref) {
 
 function mainThreadBlock(state) {
   var threadData = resolveThreadData(state);
+
   var mainBlock = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_5__.getElm)('DIV', 'nx-main-block nx-thread')
- 
   setSpinner()
+
+ if(threadData){
   spinner.startSpin()
-  
+}
   var blocks = [
     threadHeader(state, threadData),
     spinElm, 
@@ -1094,7 +1099,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js");
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
-/* harmony import */ var _i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/legacy/Valva-v1.js */ "./node_modules/@i-is-as-i-does/valva/src/legacy/Valva-v1.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
 
 
 
@@ -1106,8 +1111,11 @@ __webpack_require__.r(__webpack_exports__);
 
 function resolveThreadTitle(state) {
   var threadTitle = "/";
-  if (state && Object.prototype.hasOwnProperty.call(state, 'threadIndex') && state.threadIndex !== -1) {
+  if (state && state.threadIndex !== -1 && state.srcData.threads[state.threadIndex]) {
     threadTitle = state.srcData.threads[state.threadIndex].title;
+    if(threadTitle){
+      return threadTitle
+    }
   }
   return threadTitle;
 }
@@ -1194,7 +1202,7 @@ function serviceWrap
 function blockWrap(
   blockName,
   contentElms = null,
-  landmark = false
+  landmark = null
 ) {
   var dv = getElm("DIV", "nx-" + blockName + " nx-block");
   if (landmark) {
@@ -1254,12 +1262,12 @@ function setHistoryControls(map, triggerCallback, imgAsSymbol = false){
     }  
     map.ctrls[ctrl].elm.addEventListener("click", function () {
       if (!map.ctrls[ctrl].elm.classList.contains("nx-nav-end")) {
-        if (ctrl == "next") {
-          map.position++;
+        if (ctrl === "next") {
+          map.position++
         } else {
-          map.position--;
+          map.position--
         }
-        triggerCallback(ctrl);
+        triggerCallback(ctrl, map.position);
         toggleNavEnd(map);
       }
     });
@@ -1360,7 +1368,8 @@ function threadTitleElm(state, update = false) {
   sp.textContent = resolveThreadTitle(state);
   if (update) {
     (0,_NxState_js__WEBPACK_IMPORTED_MODULE_1__.registerUpdateEvt)(function (newState) {
-      (0,_i_is_as_i_does_valva_src_legacy_Valva_v1_js__WEBPACK_IMPORTED_MODULE_6__.splitFlap)(sp, resolveThreadTitle(newState), 15)
+      var nTitle = resolveThreadTitle(newState)
+      ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_6__.splitFlap)(sp, nTitle, 15)
     });
   }
 
@@ -1517,7 +1526,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "triggerUpdate": () => (/* binding */ triggerUpdate),
 /* harmony export */   "getCurrentState": () => (/* binding */ getCurrentState),
 /* harmony export */   "setOriginState": () => (/* binding */ setOriginState),
-/* harmony export */   "getBuffertime": () => (/* binding */ getBuffertime),
 /* harmony export */   "getAltState": () => (/* binding */ getAltState)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/load/NxSrc.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
@@ -1527,7 +1535,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const bufferTime = 400;
+
 var currentState = {
       dataUrl: null,
       srcData: null,
@@ -1536,9 +1544,9 @@ var currentState = {
     };
     
 var updateStore = { onChange: [], onSrcChange: [] };
-var updateRunning = false;
 
-function triggerCallbacks(state,triggerAll) {
+
+function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
   var ks = ["onChange"];
   if (triggerAll) {
     ks.push("onSrcChange");
@@ -1547,20 +1555,12 @@ function triggerCallbacks(state,triggerAll) {
   ks.forEach((k) => {
     if (updateStore[k].length) {
      updateStore[k].forEach((callback) => {
-        callback(state);
+        callback(state, skipHistoryUpdate);
       });
     }
   });
 }
 
-function updateTimeout() {
-  setTimeout(
-    function () {
-      updateRunning = false;
-    },
-    bufferTime
-  );
-}
 
 function concatSrc(state){
   var src = state.dataUrl
@@ -1625,14 +1625,14 @@ function registerUpdateEvt(callback, onSrcChange = false) {
 }
 
 function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
-  if (!updateRunning) {
+
     var srcChanged = state.dataUrl != currentState.dataUrl;
     if(state.threadId === '/'){
       setDefaultThread(state)
     }
 
     if (forceTrigger || srcChanged || state.threadId != currentState.threadId) {
-      updateRunning = true;
+
       if (!skipHistoryUpdate) {
         (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_1__.registerThreadVisit)(concatSrc(currentState), getTimestamp(currentState));
       }
@@ -1640,9 +1640,8 @@ function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
       var resetIndex = srcChanged || forceTrigger;
       currentState = Object.assign({},state);
 
-      triggerCallbacks(state, resetIndex);
-      updateTimeout();
-    }
+      triggerCallbacks(state, resetIndex, skipHistoryUpdate);
+
   }
 }
 
@@ -1656,10 +1655,6 @@ function setOriginState(state) {
     return true;
   }
   return false;
-}
-
-function getBuffertime(){
-  return bufferTime;
 }
 
 

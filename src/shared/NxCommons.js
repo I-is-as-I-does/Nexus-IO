@@ -5,12 +5,15 @@ import { registerTranslElm, triggerTranslate } from "@i-is-as-i-does/nexus-core/
 import { getAvailableLangs, getLang, getTxt } from "@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js";
 import { appUrl } from "@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js";
 import { splitOnLineBreaks } from "@i-is-as-i-does/jack-js/src/modules/Help.js";
-import { splitFlap } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
+import { splitFlap } from "@i-is-as-i-does/valva/src/modules/aliases.js";
 
 function resolveThreadTitle(state) {
   var threadTitle = "/";
-  if (state && Object.prototype.hasOwnProperty.call(state, 'threadIndex') && state.threadIndex !== -1) {
+  if (state && state.threadIndex !== -1 && state.srcData.threads[state.threadIndex]) {
     threadTitle = state.srcData.threads[state.threadIndex].title;
+    if(threadTitle){
+      return threadTitle
+    }
   }
   return threadTitle;
 }
@@ -97,7 +100,7 @@ export function serviceWrap
 export function blockWrap(
   blockName,
   contentElms = null,
-  landmark = false
+  landmark = null
 ) {
   var dv = getElm("DIV", "nx-" + blockName + " nx-block");
   if (landmark) {
@@ -157,12 +160,12 @@ export function setHistoryControls(map, triggerCallback, imgAsSymbol = false){
     }  
     map.ctrls[ctrl].elm.addEventListener("click", function () {
       if (!map.ctrls[ctrl].elm.classList.contains("nx-nav-end")) {
-        if (ctrl == "next") {
-          map.position++;
+        if (ctrl === "next") {
+          map.position++
         } else {
-          map.position--;
+          map.position--
         }
-        triggerCallback(ctrl);
+        triggerCallback(ctrl, map.position);
         toggleNavEnd(map);
       }
     });
@@ -263,7 +266,8 @@ export function threadTitleElm(state, update = false) {
   sp.textContent = resolveThreadTitle(state);
   if (update) {
     registerUpdateEvt(function (newState) {
-      splitFlap(sp, resolveThreadTitle(newState), 15)
+      var nTitle = resolveThreadTitle(newState)
+      splitFlap(sp, nTitle, 15)
     });
   }
 

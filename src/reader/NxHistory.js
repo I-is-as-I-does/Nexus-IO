@@ -1,5 +1,5 @@
 
-import { easeIn, easeOut, insertDiversion } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
+import { insertDiversion, easeIn, easeOut } from "@i-is-as-i-does/valva/src/modules/aliases.js";
 import { blockWrap, getElm, setHistoryControls, toggleNavEnd,setToggleOnDisplay,
   baseViewLink } from "../shared/NxCommons.js";
 import {
@@ -33,13 +33,9 @@ var histCtrls = {
 
 function historyNav() {
   var wrp = getElm("DIV", "nx-history-nav");
-  setHistoryControls(histCtrls, function(ctrl){
-    var postn = histCtrls.position;
-    if(ctrl == 'prev'){
-      postn += 1;
-    }
+  setHistoryControls(histCtrls, function(ctrl, pos){
     var target =
-    historyList.children[postn].querySelector(
+    historyList.children[pos +1].querySelector(
       ".nx-thread-title"
     );
   target.click();
@@ -73,21 +69,21 @@ function setHistoryListElm(state) {
   historyList.append(first);
   if(state && state.srcData){
   historyState = state;
-  historyList.append(historyItm(state));
+  historyList.append(historyItm(state, 0));
 }
   historyElm = getElm("DIV", "nx-history-drawer");
   historyElm.append(historyList);
   historyElm.style.display = "none";
- registerUpdateEvt(function (newState) {
-    historyEvent(newState);
+ registerUpdateEvt(function (newState, skipHistoryUpdate) {
+    historyEvent(newState, skipHistoryUpdate);
   });
 
 }
 
 
-function historyEvent(state) {
+function historyEvent(state, skipHistoryUpdate) {
 
-  if (!isHistoryEvent && (state.dataUrl != historyState.dataUrl || state.threadId != historyState.threadId)) {
+  if (!skipHistoryUpdate && !isHistoryEvent && (state.dataUrl !== historyState.dataUrl || state.threadId !== historyState.threadId)) {
     historyState = state;
     if (histCtrls.count > historyMax) {
       historyList.children[1].remove();      
@@ -96,35 +92,36 @@ function historyEvent(state) {
     }
 
     histCtrls.position = histCtrls.count-1;
-    var itm = historyItm(state);
+    var itm = historyItm(state, histCtrls.position);
     insertDiversion(historyList, itm, false, true, 200, function () {
       autoScrollToBottom(historyList);
     });
 
     toggleNavEnd(histCtrls);
-  }
+  } 
 }
 
-function viewElms(state){
+function viewElms(state, pos){
 return [authorIndexLink(state, false),
   authorUrl(state, false),
-  historyViewLink(state, false)];
+  historyViewLink(state, pos)];
 }
 
-function historyItm(state) {
+function historyItm(state, pos) {
 
   var itm = document.createElement("LI");
-    itm.append(...viewElms(state));
+    itm.append(...viewElms(state, pos));
   return itm;
 }
 
-function historyViewLink(state) {
+function historyViewLink(state, pos) {
   var viewlk = baseViewLink(state, false);
   setToggleOnDisplay(viewlk, state);
 
   viewlk.addEventListener("click", () => {
     isHistoryEvent = true;
     triggerUpdate(state, true);
+    histCtrls.position = pos;
     isHistoryEvent = false;
   });
   return viewlk;

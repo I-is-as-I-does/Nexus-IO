@@ -607,21 +607,20 @@ height: 20px;
     vertical-align: middle;
     border-radius: 0;
     cursor: pointer;
-}
-
-
-.nx .nx-add-link,
-.nx .nx-delete-link,
-.nx .nx-delete-thread {
     font-size: 22px;
     border: 1px solid #dedede;
     width: 1em;
 }
 
-.nx .nx-add-link:hover,
+.nx .nx-add-link:not(.nx-disabled):hover,
 .nx .nx-delete-link:hover,
 .nx .nx-delete-thread:hover {
     border-color: #444
+}
+
+.nx .nx-add-link.nx-disabled {
+    color: #c7c7c7;
+    cursor: default;
 }
 
 .nx .nx-distant-link-action {

@@ -1,6 +1,6 @@
 
 import { copyToClipboard } from "@i-is-as-i-does/jack-js/src/modules/Stock.js";
-import { timedFadeToggle, easeOut, easeIn } from "@i-is-as-i-does/valva/src/legacy/Valva-v1.js";
+import { timedFadeToggle, easeOut, easeIn } from "@i-is-as-i-does/valva/src/modules/aliases.js";
 import { blockWrap, getElm, iconImage } from "../shared/NxCommons.js";
 import { registerTranslElm } from "@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js";
 import { concatSrc, registerUpdateEvt } from "../shared/NxState.js";
@@ -135,11 +135,14 @@ function embedContent(state) {
   return "";
 }
 
-export function sourceBlock(state, currentStyleUrl, editionSource = false) {
+export function sourceBlock(state, currentStyleUrl = null, editionSource = false) {
   if(editionSource){
     editMode = true;
   }
-  if(currentStyleUrl !== appDefaultCss){
+  if(!currentStyleUrl) {
+    currentStyleUrl = appDefaultCss
+  }
+  else if(currentStyleUrl !== appDefaultCss){
     currentStyle = currentStyleUrl
   }
   return blockWrap("source", snippetsBundle(state), false);
