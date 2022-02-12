@@ -1010,6 +1010,7 @@ function getErr () {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "editPrefix": () => (/* binding */ editPrefix),
 /* harmony export */   "registerEditData": () => (/* binding */ registerEditData),
 /* harmony export */   "getStoredEditData": () => (/* binding */ getStoredEditData),
 /* harmony export */   "registerThreadVisit": () => (/* binding */ registerThreadVisit),
@@ -1032,19 +1033,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const editpsrcix = 'nx-edit#'
-
-function threadLastSeenDate(src) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src, 'local', 'visit')
-}
-
+const editPrefix = 'nx-edit#'
 
 function registerEditData(url, nxdata) {
-  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(editpsrcix + url, nxdata, 'local')
+  ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(editPrefix + url, nxdata, 'local')
 }
 
 function getStoredEditData(url) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(editpsrcix + url, 'local')
+  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(editPrefix + url, 'local')
 }
 
 function registerThreadVisit(src, timestamp) {
@@ -1054,7 +1050,7 @@ function registerThreadVisit(src, timestamp) {
 }
 
 function isThreadContentUnseen(src, timestamp) {
-  var lastKnownDate = threadLastSeenDate(src)
+  var lastKnownDate = (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src, 'local', 'visit')
 
   if (!lastKnownDate) {
     return true
@@ -1107,7 +1103,7 @@ function clearAllCache() {
 
 function eraseReaderSaves() {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.walkLocalStore)(function(locStore, key){
-    if (key.indexOf(editpsrcix) === 0) {
+    if (key.indexOf(editPrefix) === 0) {
       locStore.removeItem(key)
     }
   })
@@ -1117,7 +1113,7 @@ function clearReaderCache() {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearInstanceStores)()
   ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearBrowserStores)('local')
   ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.walkLocalStore)(function(locStore, key){
-    if (key.indexOf(editpsrcix) !== 0) {
+    if (key.indexOf(editPrefix) !== 0) {
       locStore.removeItem(key)
     }
   })
