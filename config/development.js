@@ -12,6 +12,6 @@ module.exports = function(dirs, splitChunks) {
     optimization: {
       minimize: false,
       splitChunks: splitChunks
-    },
+    }
   }
 }

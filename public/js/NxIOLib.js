@@ -671,7 +671,7 @@ function extendInitData (seed, forceId = null) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "defaultInitOptions": () => (/* binding */ defaultInitOptions),
-/* harmony export */   "checkClearRequest": () => (/* binding */ checkClearRequest),
+/* harmony export */   "checkCacheRequests": () => (/* binding */ checkCacheRequests),
 /* harmony export */   "setCookie": () => (/* binding */ setCookie),
 /* harmony export */   "initLogger": () => (/* binding */ initLogger),
 /* harmony export */   "retrieveNxElm": () => (/* binding */ retrieveNxElm),
@@ -706,12 +706,12 @@ const defaultInitOptions = {
   appDefaultLang: null
 }
 
-function checkClearRequest(){
+function checkCacheRequests(){
   if((0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getQuery)('clear')){
     (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__.clearReaderCache)()
   }
-  else if((0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getQuery)('clearAll')){
-    (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__.clearAllCache)()
+ if((0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getQuery)('erase')){
+  (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__.eraseReaderSaves)()
   }
 }
 
@@ -769,7 +769,7 @@ function resolveData (request) {
 function initAll (options = {}) {
   var seed = {}
   seed.options = Object.assign({}, defaultInitOptions, options)
-  checkClearRequest()
+  checkCacheRequests()
   setCookie()
   initLogger(seed.options.forceLog)
   seed.nxelm = retrieveNxElm(seed.options.customSelector)
@@ -1024,6 +1024,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "setStoredLang": () => (/* binding */ setStoredLang),
 /* harmony export */   "getStoredLang": () => (/* binding */ getStoredLang),
 /* harmony export */   "clearAllCache": () => (/* binding */ clearAllCache),
+/* harmony export */   "eraseReaderSaves": () => (/* binding */ eraseReaderSaves),
 /* harmony export */   "clearReaderCache": () => (/* binding */ clearReaderCache)
 /* harmony export */ });
 /* harmony import */ var _NxStorage_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NxStorage.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxStorage.js");
@@ -1036,6 +1037,7 @@ const editpsrcix = 'nx-edit#'
 function threadLastSeenDate(src) {
   return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src, 'local', 'visit')
 }
+
 
 function registerEditData(url, nxdata) {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(editpsrcix + url, nxdata, 'local')
@@ -1103,18 +1105,22 @@ function clearAllCache() {
   ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearBrowserStores)()
 }
 
+function eraseReaderSaves() {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.walkLocalStore)(function(locStore, key){
+    if (key.indexOf(editpsrcix) === 0) {
+      locStore.removeItem(key)
+    }
+  })
+}
+
 function clearReaderCache() {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearInstanceStores)()
   ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearBrowserStores)('local')
-  var locStore = (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getBrowserStore)('local')
-  if (locStore && locStore.length) {
-    for (var i = 0; i < locStore.length; i++) {
-      var key = locStore.key(i)
-      if (key.indexOf(editpsrcix) === -1) {
-        locStore.removeItem(key)
-      }
+  ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.walkLocalStore)(function(locStore, key){
+    if (key.indexOf(editpsrcix) !== 0) {
+      locStore.removeItem(key)
     }
-  }
+  })
 }
 
 
@@ -1136,7 +1142,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "getStoredItem": () => (/* binding */ getStoredItem),
 /* harmony export */   "removeItem": () => (/* binding */ removeItem),
 /* harmony export */   "clearInstanceStores": () => (/* binding */ clearInstanceStores),
-/* harmony export */   "clearBrowserStores": () => (/* binding */ clearBrowserStores)
+/* harmony export */   "clearBrowserStores": () => (/* binding */ clearBrowserStores),
+/* harmony export */   "walkLocalStore": () => (/* binding */ walkLocalStore)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Stock */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Stock.js");
 /*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
@@ -1248,6 +1255,17 @@ function clearBrowserStores(excludeStore = null) {
       brwsrStores[name].clear()
     }
   })
+}
+
+
+function walkLocalStore(callback){
+  var locStore = getBrowserStore('local')
+  if (locStore && locStore.length) {
+    for (var i = 0; i < locStore.length; i++) {
+      var key = locStore.key(i)
+      callback(locStore, key)
+    }
+  }
 }
 
 

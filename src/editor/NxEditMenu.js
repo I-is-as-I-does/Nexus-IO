@@ -16,7 +16,6 @@ import { getTxt } from '@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate'
 import { vSplitFlap } from '@i-is-as-i-does/valva/src/modules/transitions.js'
 import { stateChangeEvt, toggleDisabled } from './NxEditCommons.js'
 import { newData, newState } from './NxEditStarters.js'
-import { getQuery } from '@i-is-as-i-does/nexus-core/src/base/NxHost'
 
 export class NxEditMenu {
   constructor(EditState) {
@@ -169,7 +168,7 @@ export class NxEditMenu {
     this.saveBtn = getElm('A', 'nx-save')
     this.saveBtn.append(iconImage(saveB64, 20))
     this.toggleSaveBtn(true)
-      this.saveBtn.addEventListener(
+    this.saveBtn.addEventListener(
         'click',
         function () {
           if (!this.saveBtn.classList.contains('nx-disabled')) {

@@ -13,7 +13,7 @@
   "description": "Nexus is a Peer-to-Peer Micro Social Network. Nexus IO is a Nexus reader and editor app.",
   "dependencies": {
     "@i-is-as-i-does/jack-js": "^1.0.10",
-    "@i-is-as-i-does/nexus-core": "^2.2.5",
+    "@i-is-as-i-does/nexus-core": "^2.2.6",
     "@i-is-as-i-does/valva": "^1.2.0"
   },
   "devDependencies": {

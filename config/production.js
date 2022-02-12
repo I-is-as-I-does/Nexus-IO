@@ -24,7 +24,7 @@ module.exports = function(dirs, splitChunks) {
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.BannerPlugin({
         banner: license,
-      }),
-    ],
+      })
+    ]
   }
 }

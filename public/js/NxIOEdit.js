@@ -640,8 +640,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/transitions.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/transitions.js");
 /* harmony import */ var _NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NxEditCommons.js */ "./src/editor/NxEditCommons.js");
 /* harmony import */ var _NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxEditStarters.js */ "./src/editor/NxEditStarters.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/base/NxHost */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
-
 
 
 
@@ -804,7 +802,7 @@ class NxEditMenu {
     this.saveBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-save')
     this.saveBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.saveB64, 20))
     this.toggleSaveBtn(true)
-      this.saveBtn.addEventListener(
+    this.saveBtn.addEventListener(
         'click',
         function () {
           if (!this.saveBtn.classList.contains('nx-disabled')) {
