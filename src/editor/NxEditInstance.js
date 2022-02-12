@@ -101,6 +101,7 @@ export class NxEditInstance {
   }
 
   _resetFormCallback() {
+
     Object.values(this.containers).forEach((container, i) => {
       var childr = Array.from(container.childNodes)
       var isLastp = i === 3
@@ -134,13 +135,11 @@ export class NxEditInstance {
   _setThreadsInputs() {
     var items = this.EditState.getIdsList()
     if (items.length) {
-      this.EditMenu.setResetting(true)
       var isLast = false
       for (var i = 0; i < items.length; i++) {
         if (i === items.length - 1) {
           isLast = true
         }
-
         this._setThread(items[i], i, isLast)
       }
     }
@@ -149,9 +148,7 @@ export class NxEditInstance {
   _setThread(id, idx, isLast = false) {
     var ident = this.EditState.newIdent(id, idx)
     var elms = this._newThreadLis(ident)
-    var c = 0
     for (let [name, elm] of Object.entries(elms)) {
-      c++
       if (elm.style.display !== 'none') {
         elm.style.display = 'none'
         var type = 'ease'
@@ -163,11 +160,8 @@ export class NxEditInstance {
         this.containers[name].append(elm)
       }
      
-      if (isLast && c === 3) {
-        this.EditMenu.setResetting(false)
-        if (idx - 1 !== -1) {
+      if (isLast && name === "index" && (idx - 1) !== -1) {
           this.containers.index.childNodes[idx - 1].dispatchEvent(updownEvt)
-        }
       }
     }
   }
@@ -191,7 +185,6 @@ export class NxEditInstance {
       var randomId = randomString(10)
       var idx = this.EditState.getThreadsCount()
       this.EditState.pushThread(newThread(randomId))
-      this.EditMenu.setResetting(true)
       this._setThread(randomId, idx, true)
       this.EditMenu.toggleSaveBtn(false)
       toggleAddBtn(this.addThreadBtn, this.EditState.getIdsList(), 'threads')
@@ -299,6 +292,7 @@ export class NxEditInstance {
     elms.index.append(btn)
   }
 
+
   _deleteEvent(elms, ident) {
     var threadData = Object.assign({}, this.EditState.getThreadData(ident))
     var act = function (redo) {
@@ -306,6 +300,7 @@ export class NxEditInstance {
       var len = this.EditState.getThreadsCount()
 
       if (redo) {
+
         this.EditState.removeThread(ident)
 
         Object.values(elms).forEach((elm) => {
@@ -313,12 +308,18 @@ export class NxEditInstance {
             elm.remove()
           })
         })
-// @todo fix& set in own func
+     
         if (len > 1) {
+          var sibling = null
+
           if (idx === 0) {
-            elms.index.nextSibling.dispatchEvent(updownEvt)
+            sibling = elms.index.nextSibling
           } else if (idx === len - 1) {
-            elms.index.previousSibling.dispatchEvent(updownEvt)
+            sibling = elms.index.previousSibling
+          }
+          if(sibling){
+            sibling.dispatchEvent(updownEvt)
+
           }
         }
 

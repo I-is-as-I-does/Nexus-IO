@@ -208,6 +208,7 @@ export class NxInputsFactory {
     validPromise.then((isValid) => {
       this.EditState.setNewValue(ref, inp.value)
       this._setFeedbackIcon(fdbck, isValid)
+      
       if (typeof callback === 'function') {
         callback(inp, isValid)
       }
@@ -223,17 +224,18 @@ export class NxInputsFactory {
   }
 
   _setInputEvt(ref, inp, fdbck, callback) {
-    var c = 0
     var undone = ''
     var prev = inp.value
     inp.addEventListener('focus', function () {
       prev = inp.value
     })
+    inp.addEventListener('AutoUpdate', function () {
+      this._inputEvtHandler(ref, inp, fdbck, callback)
+    }.bind(this))
     inp.addEventListener(
       'change',
       function () {
         this._inputEvtHandler(ref, inp, fdbck, callback)
-        if (c > 0) {
           var act = function (redo) {
             if (redo) {
               inp.value = undone
@@ -244,9 +246,6 @@ export class NxInputsFactory {
             this._inputEvtHandler(ref, inp, fdbck, callback)
           }.bind(this)
           this.EditMenu.setLastAction(act)
-        } else {
-          c++
-        }
       }.bind(this)
     )
   }

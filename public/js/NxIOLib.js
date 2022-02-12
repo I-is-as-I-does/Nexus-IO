@@ -671,6 +671,7 @@ function extendInitData (seed, forceId = null) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "defaultInitOptions": () => (/* binding */ defaultInitOptions),
+/* harmony export */   "checkClearRequest": () => (/* binding */ checkClearRequest),
 /* harmony export */   "setCookie": () => (/* binding */ setCookie),
 /* harmony export */   "initLogger": () => (/* binding */ initLogger),
 /* harmony export */   "retrieveNxElm": () => (/* binding */ retrieveNxElm),
@@ -684,7 +685,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../base/NxHost.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
 /* harmony import */ var _NxSrc_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxSrc.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
 /* harmony import */ var _base_NxDefaults_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./../base/NxDefaults.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxDefaults.js");
+/* harmony import */ var _storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../storg/NxMemory.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxMemory.js");
 /*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
+
 
 
 
@@ -701,6 +704,15 @@ const defaultInitOptions = {
   appDefaultCss: null, 
   appDefaultCssAliases: [],
   appDefaultLang: null
+}
+
+function checkClearRequest(){
+  if((0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getQuery)('clear')){
+    (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__.clearReaderCache)()
+  }
+  else if((0,_base_NxHost_js__WEBPACK_IMPORTED_MODULE_3__.getQuery)('clearAll')){
+    (0,_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_6__.clearAllCache)()
+  }
 }
 
 function setCookie () {
@@ -753,9 +765,11 @@ function resolveData (request) {
   return Promise.reject(new Error(0))
 }
 
+
 function initAll (options = {}) {
   var seed = {}
   seed.options = Object.assign({}, defaultInitOptions, options)
+  checkClearRequest()
   setCookie()
   initLogger(seed.options.forceLog)
   seed.nxelm = retrieveNxElm(seed.options.customSelector)
@@ -1008,39 +1022,36 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "registerOembedResponse": () => (/* binding */ registerOembedResponse),
 /* harmony export */   "getStoredOembedResponse": () => (/* binding */ getStoredOembedResponse),
 /* harmony export */   "setStoredLang": () => (/* binding */ setStoredLang),
-/* harmony export */   "getStoredLang": () => (/* binding */ getStoredLang)
+/* harmony export */   "getStoredLang": () => (/* binding */ getStoredLang),
+/* harmony export */   "clearAllCache": () => (/* binding */ clearAllCache),
+/* harmony export */   "clearReaderCache": () => (/* binding */ clearReaderCache)
 /* harmony export */ });
 /* harmony import */ var _NxStorage_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./NxStorage.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxStorage.js");
 /*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
 
 
 
-var visitStore = {}
-var dataStore = {}
-var linkedStore = {}
-
-var oembedStore = {}
 const editpsrcix = 'nx-edit#'
 
-function threadLastSeenDate (src) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src, 'local', visitStore)
+function threadLastSeenDate(src) {
+  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src, 'local', 'visit')
 }
 
-function registerEditData (url, nxdata) {
+function registerEditData(url, nxdata) {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(editpsrcix + url, nxdata, 'local')
 }
 
-function getStoredEditData (url) {
+function getStoredEditData(url) {
   return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(editpsrcix + url, 'local')
 }
 
-function registerThreadVisit (src, timestamp) {
-  if (!Object.prototype.hasOwnProperty.call(visitStore, src)) {
-    (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(src, timestamp, 'local', visitStore)
+function registerThreadVisit(src, timestamp) {
+  if (!(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.instStoreHasKey)('visit', src)) {
+    (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(src, timestamp, 'local', 'visit')
   }
 }
 
-function isThreadContentUnseen (src, timestamp) {
+function isThreadContentUnseen(src, timestamp) {
   var lastKnownDate = threadLastSeenDate(src)
 
   if (!lastKnownDate) {
@@ -1052,39 +1063,58 @@ function isThreadContentUnseen (src, timestamp) {
   return false
 }
 
-function clearData (url) {
-  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.removeItem)(url, 'session', dataStore)
+function clearData(url) {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.removeItem)(url, 'session', 'data')
 }
 
-function registerData (url, nxdata) {
-  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(url, nxdata, 'session', dataStore)
+function registerData(url, nxdata) {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(url, nxdata, 'session', 'data')
 }
 
-function registerLinkedMaps (src, map) {
-  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(src + ':linked', map, 'session', linkedStore)
+function registerLinkedMaps(src, map) {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(src + ':linked', map, 'session', 'linked')
 }
 
-function getStoredLinkedMaps (src) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src + ':linked', 'session', linkedStore)
+function getStoredLinkedMaps(src) {
+  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(src + ':linked', 'session', 'linked')
 }
 
-function getStoredData (url) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(url, 'session', dataStore)
+function getStoredData(url) {
+  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(url, 'session', 'data')
 }
 
-function registerOembedResponse (givenUrl, response) {
-  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(givenUrl, response, 'local', oembedStore)
+function registerOembedResponse(givenUrl, response) {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)(givenUrl, response, 'local', 'oembed')
 }
 
-function getStoredOembedResponse (givenUrl) {
-  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(givenUrl, 'local', oembedStore)
+function getStoredOembedResponse(givenUrl) {
+  return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)(givenUrl, 'local', 'oembed')
 }
 
-function setStoredLang (lang) {
+function setStoredLang(lang) {
   (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.storeItem)('nx-lang', lang, 'local')
 }
-function getStoredLang () {
+function getStoredLang() {
   return (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getStoredItem)('nx-lang', 'local')
+}
+
+function clearAllCache() {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearInstanceStores)()
+  ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearBrowserStores)()
+}
+
+function clearReaderCache() {
+  (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearInstanceStores)()
+  ;(0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.clearBrowserStores)('local')
+  var locStore = (0,_NxStorage_js__WEBPACK_IMPORTED_MODULE_0__.getBrowserStore)('local')
+  if (locStore && locStore.length) {
+    for (var i = 0; i < locStore.length; i++) {
+      var key = locStore.key(i)
+      if (key.indexOf(editpsrcix) === -1) {
+        locStore.removeItem(key)
+      }
+    }
+  }
 }
 
 
@@ -1098,41 +1128,70 @@ function getStoredLang () {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getBrowserStore": () => (/* binding */ getBrowserStore),
+/* harmony export */   "getInstStore": () => (/* binding */ getInstStore),
+/* harmony export */   "instStoreExists": () => (/* binding */ instStoreExists),
+/* harmony export */   "instStoreHasKey": () => (/* binding */ instStoreHasKey),
 /* harmony export */   "storeItem": () => (/* binding */ storeItem),
 /* harmony export */   "getStoredItem": () => (/* binding */ getStoredItem),
 /* harmony export */   "removeItem": () => (/* binding */ removeItem),
-/* harmony export */   "clearCache": () => (/* binding */ clearCache)
+/* harmony export */   "clearInstanceStores": () => (/* binding */ clearInstanceStores),
+/* harmony export */   "clearBrowserStores": () => (/* binding */ clearBrowserStores)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Stock */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Stock.js");
 /*! Nexus | (c) 2021-22 I-is-as-I-does | AGPLv3 license */
 
 
-const locStorag = (0,_i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__.getLocalStorage)()
-const sesStorag = (0,_i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__.getSessionStorage)()
+var instStores = {
+  visit: {},
+  data: {},
+  linked: {},
+  oembed: {},
+}
 
-function setStorageAvailability (store) {
+var brwsrStores = {
+  local: (0,_i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__.getLocalStorage)(),
+  session: (0,_i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__.getSessionStorage)(),
+}
+
+Object.values(brwsrStores).forEach((store) => {
   if (store && !store.getItem('available')) {
     store.setItem('available', 5000)
   }
-}
+})
 
-function resolveStore (storage) {
-  if (storage === 'session') {
-    return sesStorag
+function getBrowserStore(storage) {
+  if (storage === 'local') {
+    return brwsrStores.local
   }
-  return locStorag
+  return brwsrStores.session
 }
 
-setStorageAvailability(locStorag)
-setStorageAvailability(sesStorag)
+function getInstStore(instanceStore){
+  if(instStoreExists(instanceStore)){
+    return instStores[instanceStore]
+  }
+  return null
+}
 
-function storeItem (key, data, storage = 'session', instanceStore = null) {
+function instStoreExists(instanceStore) {
+  return instanceStore && Object.prototype.hasOwnProperty.call(instStores, instanceStore)
+}
+
+function instStoreHasKey(instanceStore, key) {
+  return (
+    instStoreExists(instanceStore) &&
+    Object.prototype.hasOwnProperty.call(instStores[instanceStore], key)
+  )
+}
+
+function storeItem(key, data, storage = 'session', instanceStore = null) {
   var sdata = JSON.stringify(data)
-  if (instanceStore) {
-    instanceStore[key] = sdata
+  if (instStoreExists(instanceStore)) {
+    instStores[instanceStore][key] = sdata
   }
-  var store = resolveStore(storage)
-  if (store != null) {
+  var store = getBrowserStore(storage)
+  if (store) {
     var datasize = (0,_i_is_as_i_does_jack_js_src_modules_Stock__WEBPACK_IMPORTED_MODULE_0__.jsonSize)(sdata, true, true)
     if (datasize > 2000) {
       return
@@ -1148,16 +1207,16 @@ function storeItem (key, data, storage = 'session', instanceStore = null) {
   }
 }
 
-function getStoredItem (key, storage = 'session', instanceStore = null) {
-  if (instanceStore !== null && Object.prototype.hasOwnProperty.call(instanceStore, key)) {
-    return JSON.parse(instanceStore[key])
+function getStoredItem(key, storage = 'session', instanceStore = null) {
+  if (instStoreHasKey(instanceStore, key)) {
+    return JSON.parse(instStores[instanceStore][key])
   }
-  var store = resolveStore(storage)
+  var store = getBrowserStore(storage)
   if (store) {
     var sdata = store.getItem(key)
     if (sdata) {
-      if (instanceStore) {
-        instanceStore[key] = sdata
+      if (instStoreExists(instanceStore)) {
+        instStores[instanceStore][key] = sdata
       }
       return JSON.parse(sdata)
     }
@@ -1165,19 +1224,28 @@ function getStoredItem (key, storage = 'session', instanceStore = null) {
   return null
 }
 
-function removeItem (key, storage = 'session', instanceStore = null) {
-  if (instanceStore & Object.prototype.hasOwnProperty.call(instanceStore, key)) {
-    delete instanceStore[key]
+function removeItem(key, storage = 'session', instanceStore = null) {
+  if (instStoreHasKey(instanceStore, key)) {
+    delete instStores[instanceStore][key]
   }
-  var store = resolveStore(storage)
+  var store = getBrowserStore(storage)
   if (store) {
     store.removeItem(key)
   }
 }
-function clearCache () {
-  [sesStorag, locStorag].forEach(store => {
-    if (store) {
-      store.clear()
+
+function clearInstanceStores(excludeStores = []) {
+  Object.keys(instStores).forEach((instanceStore) => {
+    if (!excludeStores.includes(instanceStore)) {
+      instStores[instanceStore] = {}
+    }
+  })
+}
+
+function clearBrowserStores(excludeStore = null) {
+  Object.keys(brwsrStores).forEach((name) => {
+    if (brwsrStores[name] && excludeStore !== name) {
+      brwsrStores[name].clear()
     }
   })
 }

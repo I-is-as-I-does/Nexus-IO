@@ -47,6 +47,7 @@ function toggleAddBtn(btn, haystack, itemsKey) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "mediaGuessMap": () => (/* binding */ mediaGuessMap),
+/* harmony export */   "autoUpdateEvt": () => (/* binding */ autoUpdateEvt),
 /* harmony export */   "stateChangeEvt": () => (/* binding */ stateChangeEvt),
 /* harmony export */   "threadChangeEvt": () => (/* binding */ threadChangeEvt),
 /* harmony export */   "updownEvt": () => (/* binding */ updownEvt),
@@ -67,6 +68,7 @@ const mediaGuessMap = {
   audio: ['mp3'],
 }
 
+const autoUpdateEvt = new CustomEvent('AutoUpdate')
 const stateChangeEvt = new CustomEvent('StateChange')
 const threadChangeEvt = new CustomEvent('ThreadChange')
 const updownEvt = new CustomEvent('IndexChange')
@@ -249,6 +251,7 @@ class NxEditInstance {
   }
 
   _resetFormCallback() {
+
     Object.values(this.containers).forEach((container, i) => {
       var childr = Array.from(container.childNodes)
       var isLastp = i === 3
@@ -282,13 +285,11 @@ class NxEditInstance {
   _setThreadsInputs() {
     var items = this.EditState.getIdsList()
     if (items.length) {
-      this.EditMenu.setResetting(true)
       var isLast = false
       for (var i = 0; i < items.length; i++) {
         if (i === items.length - 1) {
           isLast = true
         }
-
         this._setThread(items[i], i, isLast)
       }
     }
@@ -297,9 +298,7 @@ class NxEditInstance {
   _setThread(id, idx, isLast = false) {
     var ident = this.EditState.newIdent(id, idx)
     var elms = this._newThreadLis(ident)
-    var c = 0
     for (let [name, elm] of Object.entries(elms)) {
-      c++
       if (elm.style.display !== 'none') {
         elm.style.display = 'none'
         var type = 'ease'
@@ -311,11 +310,8 @@ class NxEditInstance {
         this.containers[name].append(elm)
       }
      
-      if (isLast && c === 3) {
-        this.EditMenu.setResetting(false)
-        if (idx - 1 !== -1) {
+      if (isLast && name === "index" && (idx - 1) !== -1) {
           this.containers.index.childNodes[idx - 1].dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
-        }
       }
     }
   }
@@ -339,7 +335,6 @@ class NxEditInstance {
       var randomId = (0,_i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__.randomString)(10)
       var idx = this.EditState.getThreadsCount()
       this.EditState.pushThread((0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_7__.newThread)(randomId))
-      this.EditMenu.setResetting(true)
       this._setThread(randomId, idx, true)
       this.EditMenu.toggleSaveBtn(false)
       ;(0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(this.addThreadBtn, this.EditState.getIdsList(), 'threads')
@@ -447,6 +442,7 @@ class NxEditInstance {
     elms.index.append(btn)
   }
 
+
   _deleteEvent(elms, ident) {
     var threadData = Object.assign({}, this.EditState.getThreadData(ident))
     var act = function (redo) {
@@ -454,6 +450,7 @@ class NxEditInstance {
       var len = this.EditState.getThreadsCount()
 
       if (redo) {
+
         this.EditState.removeThread(ident)
 
         Object.values(elms).forEach((elm) => {
@@ -461,12 +458,18 @@ class NxEditInstance {
             elm.remove()
           })
         })
-
+     
         if (len > 1) {
+          var sibling = null
+
           if (idx === 0) {
-            elms.index.nextSibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+            sibling = elms.index.nextSibling
           } else if (idx === len - 1) {
-            elms.index.previousSibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+            sibling = elms.index.previousSibling
+          }
+          if(sibling){
+            sibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+
           }
         }
 
@@ -637,6 +640,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/transitions.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/transitions.js");
 /* harmony import */ var _NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NxEditCommons.js */ "./src/editor/NxEditCommons.js");
 /* harmony import */ var _NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxEditStarters.js */ "./src/editor/NxEditStarters.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/base/NxHost */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
+
 
 
 
@@ -672,7 +677,7 @@ class NxEditMenu {
   }
 
   toggleSaveBtn(disabled = false) {
-    (0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, disabled)
+      (0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, disabled)
   }
   _displayFeedback(msg) {
     var txt = (0,_i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_6__.getTxt)(msg)
@@ -688,27 +693,30 @@ class NxEditMenu {
     )
   }
 
-  _resetData(data) {
+  _resetData(data, url) {
     var prvState = this.EditState.getJsonState()
     if (data === null) {
       data = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newData)()
     }
-
-    var state = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newState)(data)
+    var state = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newState)(data, url)
     if (state.srcData.threads.length) {
       state.threadIndex = 0
       state.threadId = state.srcData.threads[0].id
     }
     var nxtState = JSON.stringify(state)
     var act = function (redo) {
+      this.resetting = true
       var nstate
       if (redo) {
         nstate = nxtState
       } else {
         nstate = prvState
       }
+  
       this.EditState.setNewState(nstate)
       this.menu.dispatchEvent(_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.stateChangeEvt)
+      this.filename = this.EditState.resolveFilename()
+      this.resetting = false
     }.bind(this)
     act(true)
     this.setLastAction(act, true)
@@ -720,6 +728,7 @@ class NxEditMenu {
   }
 
   _setDownloadBtn() {
+    this.filename = 'nexus.json'
     this.dlBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-download')
     this.dlBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.downloadB64, 20))
     this.dlBtn.addEventListener(
@@ -749,7 +758,7 @@ class NxEditMenu {
     this.newBtn.addEventListener(
       'click',
       function () {
-        this._resetData((0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newData)())
+        this._resetData((0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newData)(), 'nexus.json')
       }.bind(this)
     )
   }
@@ -775,10 +784,11 @@ class NxEditMenu {
     this.fileInput.addEventListener(
       'change',
       function (evt) {
+        var filename = evt.target.files[0].name
         ;(0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.loadSrcFile)(evt, true)
           .then((fdata) => {
             fdata.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.getThreadsList)(fdata)
-            this._resetData(fdata)
+            this._resetData(fdata, filename)
           })
           .catch((err) => {
             (0,_i_is_as_i_does_nexus_core_src_logs_NxLog__WEBPACK_IMPORTED_MODULE_1__.logErr)(err.message)
@@ -793,19 +803,18 @@ class NxEditMenu {
   _setSaveBtn() {
     this.saveBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-save')
     this.saveBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.saveB64, 20))
-    ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, true)
-    this.saveBtn.addEventListener(
-      'click',
-      function () {
-        if (!this.saveBtn.classList.contains('nx-disabled')) {
-          var editState = this.EditState.state
-          ;(0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_2__.registerEditData)(editState.dataUrl, editState.srcData)
-          this._displayFeedback('saved')
-          ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, true)
-          this._setResetStatus()
-        }
-      }.bind(this)
-    )
+    this.toggleSaveBtn(true)
+      this.saveBtn.addEventListener(
+        'click',
+        function () {
+          if (!this.saveBtn.classList.contains('nx-disabled')) {
+            (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_2__.registerEditData)(this.EditState.cacheName, this.EditState.state.srcData)
+            this._displayFeedback('saved')
+            this.toggleSaveBtn(true)
+            this._setResetStatus()
+          }
+        }.bind(this)
+      )
   }
 
   _setResetStatus() {
@@ -825,7 +834,7 @@ class NxEditMenu {
       'click',
       function () {
         if (!this.resetBtn.classList.contains('nx-disabled')) {
-          this._resetData(JSON.parse(this.EditState.originData))
+          this._resetData(JSON.parse(this.EditState.originData), this.EditState.originUrl)
           ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.resetBtn, true)
         }
       }.bind(this)
@@ -895,7 +904,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function newState(data, url = 'nexus-tmp', id = '/', idx = -1) {
+function newState(data, url = 'nexus.json', id = '/', idx = -1) {
   return {
     dataUrl: url,
     srcData: data,
@@ -965,43 +974,58 @@ __webpack_require__.r(__webpack_exports__);
 
 class NxEditState {
   constructor(state) {
-    var url = 'nexus-tmp'
-    var data = null
+    var tag = 'new'
+    var url = 'nexus.json'
+    var useState = false
 
-    if ((0,_i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_1__.getQuery)('new')) {
-      data = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newData)()
-      state = null
-    } else {
-      if (state.dataUrl) {
-        url = state.dataUrl
-      }
-      data = (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.getStoredEditData)(url)
-      if (data === null) {
-        if (state.srcData !== null) {
-          data = state.srcData
-        } else {
-          data = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newData)()
+    if ((0,_i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_1__.getQuery)('edit')) {
+      tag = 'current'
+      if(state){
+        if(state.dataUrl){
+          url = state.dataUrl
+        }   
+        if(state.srcData){
+          useState = true
         }
-        (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.registerEditData)(url, data)
+      }   
+    }
+
+    this.cacheName = tag+"#"+url
+    this.originUrl = url
+    var data = (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.getStoredEditData)(this.cacheName)
+    var register = false
+
+    if(data === null){
+      register = true
+      if(useState){
+        data = state.srcData
+      } else {
+        data = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newData)()
       }
     }
 
     if (!data.index) {
+      register = true
       data.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_2__.getThreadsList)(data)
+    }
+    if(register){
+      (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.registerEditData)(this.cacheName, data)
     }
 
     var origin = data
-    if (state !== null && state.srcData !== null) {
+    if (useState) {
       origin = state.srcData
     }
     this.originData = JSON.stringify(origin)
 
-    var id = data.threads[0].id
-    var idx = 0
-
-    if (state && state.threadId !== '/' && data.index.includes(state.threadId)) {
+    var id = '/'
+    var idx = -1
+    if(useState && state.threadId !== '/' && data.index.includes(state.threadId)){
       id = state.threadId
       idx = data.index.indexOf(state.threadId)
+    } else if(data.threads.length){
+      id = data.threads[0].id
+      idx = 0
     }
 
     this.state = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newState)(data, url, id, idx)
@@ -1169,6 +1193,22 @@ class NxEditState {
   isCurrentId(ident) {
     return this.threadsMap[ident].id === this.state.threadId
   }
+
+  resolveFilename(){
+    var filename = 'nexus.json'
+    if(this.state.dataUrl && this.state.dataUrl !== filename){
+      var sp = this.state.dataUrl.split('/').filter(it => it)
+      if(sp.length){
+        filename = sp.pop()
+        if(filename.slice(-5) !== '.json'){
+          filename += '.json'
+        }
+        filename = (0,_i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__.replaceDiacritics)(filename)
+      }
+    }
+    return filename
+  }
+
 
   /* specific thread methods */
 
@@ -1362,11 +1402,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class NxEditSwitch {
-  constructor(editInst, readerInst, readerUpdatePrc) {
+  constructor(editInst, readerInst, readerUpdatePromise) {
     this.editInst = editInst
     this.readerInst = readerInst
 
-    this.readerUpdatePrc = readerUpdatePrc
+    this.readerUpdatePromise = readerUpdatePromise
 
     this.previewOn = false
     this._setSwitchBtn()
@@ -1381,9 +1421,10 @@ class NxEditSwitch {
 
     if (this.previewOn) {
       (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vHide)(this.editInst, 'fade', 200,  function () {
-        this.readerUpdatePrc()
-        this.switchBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.editB64
-        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vShow)(this.readerInst, 'fade', 200)
+        this.readerUpdatePromise().then(()=> {
+          this.switchBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.editB64
+          ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vShow)(this.readerInst, 'fade', 200)
+        })
       }.bind(this))
     } else {
       (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vHide)(this.readerInst, 'fade', 200,  function () {
@@ -1440,10 +1481,13 @@ function editorElms(seed) {
   var readerInst = (0,_reader_NxReader_js__WEBPACK_IMPORTED_MODULE_0__.readerElms)(readerSeed)
   readerInst.style.display = 'none'
 
-  var readerUpdatePrc = function () {
-    return (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(EditState.state, true, true)
+  var readerUpdatePromise = function () {
+   ;(0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(EditState.state, true, true)
+   return new Promise(function(resolve) {
+    setTimeout(resolve, 100);
+})
   }
-  var EditSwitch = new _NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_3__.NxEditSwitch(editInst, readerInst, readerUpdatePrc)
+  var EditSwitch = new _NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_3__.NxEditSwitch(editInst, readerInst, readerUpdatePromise)
   var switchBtn = EditSwitch.getSwitchBtn()
 
   var editor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)('DIV', 'nx-editor')
@@ -1678,6 +1722,7 @@ class NxInputsFactory {
     validPromise.then((isValid) => {
       this.EditState.setNewValue(ref, inp.value)
       this._setFeedbackIcon(fdbck, isValid)
+      
       if (typeof callback === 'function') {
         callback(inp, isValid)
       }
@@ -1693,17 +1738,18 @@ class NxInputsFactory {
   }
 
   _setInputEvt(ref, inp, fdbck, callback) {
-    var c = 0
     var undone = ''
     var prev = inp.value
     inp.addEventListener('focus', function () {
       prev = inp.value
     })
+    inp.addEventListener('AutoUpdate', function () {
+      this._inputEvtHandler(ref, inp, fdbck, callback)
+    }.bind(this))
     inp.addEventListener(
       'change',
       function () {
         this._inputEvtHandler(ref, inp, fdbck, callback)
-        if (c > 0) {
           var act = function (redo) {
             if (redo) {
               inp.value = undone
@@ -1714,9 +1760,6 @@ class NxInputsFactory {
             this._inputEvtHandler(ref, inp, fdbck, callback)
           }.bind(this)
           this.EditMenu.setLastAction(act)
-        } else {
-          c++
-        }
       }.bind(this)
     )
   }
@@ -1789,15 +1832,22 @@ class NxLocalFormFactory {
   _localFieldSet3(ident) {
     var fieldset3 = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.getElm)('FIELDSET')
 
-    var typeInp = this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'type'])
+    var store = { type:null }
+    var typeInp = this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'type'], null, store)
     var typeCallback = function (inp, valid) {
       if (valid) {
-        var item = typeInp.querySelector('[data-item=' + (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_1__.resolveMediaType)(inp.value) + ']')
-        if (item) {
-          item.click()
+        var guessedType = (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_1__.resolveMediaType)(inp.value)
+        if(store.type.value !== guessedType){
+          store.type.value = guessedType
+          var prev = typeInp.querySelector('.nx-selected')
+          if(prev){
+            prev.classList.remove('nx-selected')
+          }
+          typeInp.querySelector('[data-item=' + guessedType + ']').classList.add('nx-selected')
+          store.type.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_1__.autoUpdateEvt)
         }
       }
-    }
+    }.bind(this)
     fieldset3.append(
       this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'url'], typeCallback)
     )

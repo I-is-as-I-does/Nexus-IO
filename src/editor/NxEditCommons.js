@@ -7,6 +7,7 @@ export const mediaGuessMap = {
   audio: ['mp3'],
 }
 
+export const autoUpdateEvt = new CustomEvent('AutoUpdate')
 export const stateChangeEvt = new CustomEvent('StateChange')
 export const threadChangeEvt = new CustomEvent('ThreadChange')
 export const updownEvt = new CustomEvent('IndexChange')

@@ -1,4 +1,4 @@
-import { randomString } from '@i-is-as-i-does/jack-js/src/modules/Help'
+import { randomString, replaceDiacritics } from '@i-is-as-i-does/jack-js/src/modules/Help'
 import { getQuery } from '@i-is-as-i-does/nexus-core/src/base/NxHost'
 import { getThreadsList } from '@i-is-as-i-does/nexus-core/src/load/NxSrc'
 import { getStoredEditData, registerEditData } from '@i-is-as-i-does/nexus-core/src/storg/NxMemory'
@@ -7,43 +7,58 @@ import { newState, newData } from './NxEditStarters'
 
 export class NxEditState {
   constructor(state) {
-    var url = 'nexus-tmp'
-    var data = null
+    var tag = 'new'
+    var url = 'nexus.json'
+    var useState = false
 
-    if (getQuery('new')) {
-      data = newData()
-      state = null
-    } else {
-      if (state.dataUrl) {
-        url = state.dataUrl
-      }
-      data = getStoredEditData(url)
-      if (data === null) {
-        if (state.srcData !== null) {
-          data = state.srcData
-        } else {
-          data = newData()
+    if (getQuery('edit')) {
+      tag = 'current'
+      if(state){
+        if(state.dataUrl){
+          url = state.dataUrl
+        }   
+        if(state.srcData){
+          useState = true
         }
-        registerEditData(url, data)
+      }   
+    }
+
+    this.cacheName = tag+"#"+url
+    this.originUrl = url
+    var data = getStoredEditData(this.cacheName)
+    var register = false
+
+    if(data === null){
+      register = true
+      if(useState){
+        data = state.srcData
+      } else {
+        data = newData()
       }
     }
 
     if (!data.index) {
+      register = true
       data.index = getThreadsList(data)
+    }
+    if(register){
+      registerEditData(this.cacheName, data)
     }
 
     var origin = data
-    if (state !== null && state.srcData !== null) {
+    if (useState) {
       origin = state.srcData
     }
     this.originData = JSON.stringify(origin)
 
-    var id = data.threads[0].id
-    var idx = 0
-
-    if (state && state.threadId !== '/' && data.index.includes(state.threadId)) {
+    var id = '/'
+    var idx = -1
+    if(useState && state.threadId !== '/' && data.index.includes(state.threadId)){
       id = state.threadId
       idx = data.index.indexOf(state.threadId)
+    } else if(data.threads.length){
+      id = data.threads[0].id
+      idx = 0
     }
 
     this.state = newState(data, url, id, idx)
@@ -211,6 +226,22 @@ export class NxEditState {
   isCurrentId(ident) {
     return this.threadsMap[ident].id === this.state.threadId
   }
+
+  resolveFilename(){
+    var filename = 'nexus.json'
+    if(this.state.dataUrl && this.state.dataUrl !== filename){
+      var sp = this.state.dataUrl.split('/').filter(it => it)
+      if(sp.length){
+        filename = sp.pop()
+        if(filename.slice(-5) !== '.json'){
+          filename += '.json'
+        }
+        filename = replaceDiacritics(filename)
+      }
+    }
+    return filename
+  }
+
 
   /* specific thread methods */
 

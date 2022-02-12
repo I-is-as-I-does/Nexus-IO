@@ -18,10 +18,13 @@ export function editorElms(seed) {
   var readerInst = readerElms(readerSeed)
   readerInst.style.display = 'none'
 
-  var readerUpdatePrc = function () {
-    return triggerUpdate(EditState.state, true, true)
+  var readerUpdatePromise = function () {
+   triggerUpdate(EditState.state, true, true)
+   return new Promise(function(resolve) {
+    setTimeout(resolve, 100);
+})
   }
-  var EditSwitch = new NxEditSwitch(editInst, readerInst, readerUpdatePrc)
+  var EditSwitch = new NxEditSwitch(editInst, readerInst, readerUpdatePromise)
   var switchBtn = EditSwitch.getSwitchBtn()
 
   var editor = getElm('DIV', 'nx-editor')

@@ -3,11 +3,11 @@ import { getElm, iconImage } from '../shared/NxCommons.js'
 import { editB64, previewB64 } from '../shared/NxIcons.js'
 
 export class NxEditSwitch {
-  constructor(editInst, readerInst, readerUpdatePrc) {
+  constructor(editInst, readerInst, readerUpdatePromise) {
     this.editInst = editInst
     this.readerInst = readerInst
 
-    this.readerUpdatePrc = readerUpdatePrc
+    this.readerUpdatePromise = readerUpdatePromise
 
     this.previewOn = false
     this._setSwitchBtn()
@@ -22,9 +22,10 @@ export class NxEditSwitch {
 
     if (this.previewOn) {
       vHide(this.editInst, 'fade', 200,  function () {
-        this.readerUpdatePrc()
-        this.switchBtn.firstChild.src = editB64
-        vShow(this.readerInst, 'fade', 200)
+        this.readerUpdatePromise().then(()=> {
+          this.switchBtn.firstChild.src = editB64
+          vShow(this.readerInst, 'fade', 200)
+        })
       }.bind(this))
     } else {
       vHide(this.readerInst, 'fade', 200,  function () {

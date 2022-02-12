@@ -1460,13 +1460,11 @@ function init() {
       } else {
          elm = (0,_reader_NxReader_js__WEBPACK_IMPORTED_MODULE_6__.readerElms)(seed)
       }
-
      mountApp(seed.nxelm, elm)
+    }).catch((err) => {
+      (0,_i_is_as_i_does_nexus_core_src_logs_NxLog_js__WEBPACK_IMPORTED_MODULE_3__.logErr)(err.message)
+      mountApp((0,_i_is_as_i_does_nexus_core_src_load_NxInit_js__WEBPACK_IMPORTED_MODULE_0__.retrieveNxElm)(), (0,_NxCommons_js__WEBPACK_IMPORTED_MODULE_7__.errorPrgr)())
     })
-    /*.catch((err) => {
-      logErr(err.message)
-      mountApp(retrieveNxElm(), errorPrgr())
-    })*/
 }
 
 
@@ -1530,15 +1528,16 @@ function concatSrc(state) {
 }
 
 function getTimestamp(state) {
-  if (state.threadIndex !== -1 && state.threadIndex < state.srcData.threads.length) {
+  if (state.threadIndex !== -1 && state.srcData.threads && state.threadIndex < state.srcData.threads.length) {
     return state.srcData.threads[state.threadIndex].content.timestamp
   }
   return null
 }
 
 function isStateUnseen(state) {
-  if (state.threadIndex !== -1 && state.srcData.index.indexOf(state.threadIndex) !== -1) {
-    return (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_1__.isThreadContentUnseen)(concatSrc(state), getTimestamp(state))
+  var timestamp = getTimestamp(state)
+  if(timestamp){
+    return (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_1__.isThreadContentUnseen)(concatSrc(state), timestamp)
   }
   return false
 }

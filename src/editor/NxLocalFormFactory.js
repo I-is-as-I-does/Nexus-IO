@@ -1,5 +1,5 @@
 import { getElm, landmarkElm } from '../shared/NxCommons'
-import { resolveMediaType } from './NxEditCommons'
+import { autoUpdateEvt, resolveMediaType } from './NxEditCommons'
 
 export class NxLocalFormFactory {
   constructor(InputsFactory) {
@@ -50,15 +50,22 @@ export class NxLocalFormFactory {
   _localFieldSet3(ident) {
     var fieldset3 = getElm('FIELDSET')
 
-    var typeInp = this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'type'])
+    var store = { type:null }
+    var typeInp = this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'type'], null, store)
     var typeCallback = function (inp, valid) {
       if (valid) {
-        var item = typeInp.querySelector('[data-item=' + resolveMediaType(inp.value) + ']')
-        if (item) {
-          item.click()
+        var guessedType = resolveMediaType(inp.value)
+        if(store.type.value !== guessedType){
+          store.type.value = guessedType
+          var prev = typeInp.querySelector('.nx-selected')
+          if(prev){
+            prev.classList.remove('nx-selected')
+          }
+          typeInp.querySelector('[data-item=' + guessedType + ']').classList.add('nx-selected')
+          store.type.dispatchEvent(autoUpdateEvt)
         }
       }
-    }
+    }.bind(this)
     fieldset3.append(
       this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'url'], typeCallback)
     )

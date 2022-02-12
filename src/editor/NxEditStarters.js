@@ -1,7 +1,7 @@
 import { randomInt, randomString } from '@i-is-as-i-does/jack-js/src/modules/Help.js'
 import { appUrl } from '@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js'
 
-export function newState(data, url = 'nexus-tmp', id = '/', idx = -1) {
+export function newState(data, url = 'nexus.json', id = '/', idx = -1) {
   return {
     dataUrl: url,
     srcData: data,

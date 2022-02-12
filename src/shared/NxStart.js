@@ -33,11 +33,9 @@ export function init() {
       } else {
          elm = readerElms(seed)
       }
-
      mountApp(seed.nxelm, elm)
-    })
-    /*.catch((err) => {
+    }).catch((err) => {
       logErr(err.message)
       mountApp(retrieveNxElm(), errorPrgr())
-    })*/
+    })
 }

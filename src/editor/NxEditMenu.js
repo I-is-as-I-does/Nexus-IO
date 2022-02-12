@@ -16,6 +16,7 @@ import { getTxt } from '@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate'
 import { vSplitFlap } from '@i-is-as-i-does/valva/src/modules/transitions.js'
 import { stateChangeEvt, toggleDisabled } from './NxEditCommons.js'
 import { newData, newState } from './NxEditStarters.js'
+import { getQuery } from '@i-is-as-i-does/nexus-core/src/base/NxHost'
 
 export class NxEditMenu {
   constructor(EditState) {
@@ -41,7 +42,7 @@ export class NxEditMenu {
   }
 
   toggleSaveBtn(disabled = false) {
-    toggleDisabled(this.saveBtn, disabled)
+      toggleDisabled(this.saveBtn, disabled)
   }
   _displayFeedback(msg) {
     var txt = getTxt(msg)
@@ -57,27 +58,30 @@ export class NxEditMenu {
     )
   }
 
-  _resetData(data) {
+  _resetData(data, url) {
     var prvState = this.EditState.getJsonState()
     if (data === null) {
       data = newData()
     }
-
-    var state = newState(data)
+    var state = newState(data, url)
     if (state.srcData.threads.length) {
       state.threadIndex = 0
       state.threadId = state.srcData.threads[0].id
     }
     var nxtState = JSON.stringify(state)
     var act = function (redo) {
+      this.resetting = true
       var nstate
       if (redo) {
         nstate = nxtState
       } else {
         nstate = prvState
       }
+  
       this.EditState.setNewState(nstate)
       this.menu.dispatchEvent(stateChangeEvt)
+      this.filename = this.EditState.resolveFilename()
+      this.resetting = false
     }.bind(this)
     act(true)
     this.setLastAction(act, true)
@@ -89,6 +93,7 @@ export class NxEditMenu {
   }
 
   _setDownloadBtn() {
+    this.filename = 'nexus.json'
     this.dlBtn = getElm('A', 'nx-download')
     this.dlBtn.append(iconImage(downloadB64, 20))
     this.dlBtn.addEventListener(
@@ -118,7 +123,7 @@ export class NxEditMenu {
     this.newBtn.addEventListener(
       'click',
       function () {
-        this._resetData(newData())
+        this._resetData(newData(), 'nexus.json')
       }.bind(this)
     )
   }
@@ -144,10 +149,11 @@ export class NxEditMenu {
     this.fileInput.addEventListener(
       'change',
       function (evt) {
+        var filename = evt.target.files[0].name
         loadSrcFile(evt, true)
           .then((fdata) => {
             fdata.index = getThreadsList(fdata)
-            this._resetData(fdata)
+            this._resetData(fdata, filename)
           })
           .catch((err) => {
             logErr(err.message)
@@ -162,19 +168,18 @@ export class NxEditMenu {
   _setSaveBtn() {
     this.saveBtn = getElm('A', 'nx-save')
     this.saveBtn.append(iconImage(saveB64, 20))
-    toggleDisabled(this.saveBtn, true)
-    this.saveBtn.addEventListener(
-      'click',
-      function () {
-        if (!this.saveBtn.classList.contains('nx-disabled')) {
-          var editState = this.EditState.state
-          registerEditData(editState.dataUrl, editState.srcData)
-          this._displayFeedback('saved')
-          toggleDisabled(this.saveBtn, true)
-          this._setResetStatus()
-        }
-      }.bind(this)
-    )
+    this.toggleSaveBtn(true)
+      this.saveBtn.addEventListener(
+        'click',
+        function () {
+          if (!this.saveBtn.classList.contains('nx-disabled')) {
+            registerEditData(this.EditState.cacheName, this.EditState.state.srcData)
+            this._displayFeedback('saved')
+            this.toggleSaveBtn(true)
+            this._setResetStatus()
+          }
+        }.bind(this)
+      )
   }
 
   _setResetStatus() {
@@ -194,7 +199,7 @@ export class NxEditMenu {
       'click',
       function () {
         if (!this.resetBtn.classList.contains('nx-disabled')) {
-          this._resetData(JSON.parse(this.EditState.originData))
+          this._resetData(JSON.parse(this.EditState.originData), this.EditState.originUrl)
           toggleDisabled(this.resetBtn, true)
         }
       }.bind(this)
