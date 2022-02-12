@@ -191,7 +191,9 @@
 .nx .nx-threads-list ul, .nx .nx-edit .nx-index ul {
     padding-top: 1rem;
 }
-
+.nx .nx-threads-list ul li {
+    margin-top:5px
+}
 .nx .nx-block>*, .nx .nx-main-block > * {
     max-width: 100%;
 }
@@ -201,8 +203,8 @@
     max-width:340px;
 }
 .nx .nx-thread-header {
-    width: 100%;
-    max-width: 680px;
+    max-width: 100%;
+    width: 680px;
 }
 
 .nx .nx-threads-list, .nx .nx-edit .nx-index, .nx .nx-local {
@@ -301,7 +303,6 @@
 
 .nx section a.nx-view-link {
     display: block;
-    margin-top: 4px;
 }
 
 .nx section a.nx-view-link:before {
@@ -430,12 +431,6 @@ height: 20px;
 
 .nx .nx-content-media a.nx-external-link {
     text-decoration: underline dotted #444 1px;
-}
-
-.nx .nx-content-media a.nx-external-link:after {
-    content: "↗";
-    padding-left: 2px;
-    font-size: 0.8rem;
 }
 
 .nx .nx-content-media {
@@ -607,21 +602,20 @@ height: 20px;
     vertical-align: middle;
     border-radius: 0;
     cursor: pointer;
-}
-
-
-.nx .nx-add-link,
-.nx .nx-delete-link,
-.nx .nx-delete-thread {
     font-size: 22px;
     border: 1px solid #dedede;
     width: 1em;
 }
 
-.nx .nx-add-link:hover,
+.nx .nx-add-link:not(.nx-disabled):hover,
 .nx .nx-delete-link:hover,
 .nx .nx-delete-thread:hover {
     border-color: #444
+}
+
+.nx .nx-add-link.nx-disabled {
+    color: #c7c7c7;
+    cursor: default;
 }
 
 .nx .nx-distant-link-action {

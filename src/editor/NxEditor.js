@@ -1,28 +1,34 @@
+import { readerElms } from '../reader/NxReader.js'
+import { getElm } from '../shared/NxCommons.js'
+import { NxEditInstance } from './NxEditInstance.js'
+import { NxEditSwitch } from './NxEditSwitch.js'
+import { triggerUpdate } from '../shared/NxState.js'
+import { NxEditState } from './NxEditState.js'
 
-import { appHeaderWithLang, getElm, instanceWrap, serviceWrap } from "../shared/NxCommons.js";
-import { readerElms } from "../reader/NxReader.js";
-import { editDistantBlock, editIndexBlock, editLocalBlock, getEditMenu, setEditState, instanceSwitch } from "./NxEdit.js";
+export function editorElms(seed) {
+  var EditState = new NxEditState(seed.state)
+  var EditInstance = new NxEditInstance(EditState)
 
-export function editorElms(seed){
+  var editInst = EditInstance.getInstanceElms()
 
-    setEditState(seed.state, seed.nxelm);
-
-    var readerInst = readerElms(seed);
-  
-   var indexPart = getElm("DIV");
-   indexPart.append(editIndexBlock());
-   var threadPart = getElm("DIV");
-   threadPart.append(editLocalBlock(),editDistantBlock());
-   
-   var editInst = instanceWrap(appHeaderWithLang(),[serviceWrap
-  ([getEditMenu()], [
-    indexPart,
-    threadPart
-    ], [], "edit")]);
-
-    var editor = getElm('DIV','nx-editor')
-    editor.append(editInst, instanceSwitch(readerInst, editInst))
-    
-    return editor
+  var readerSeed = {
+    editMode: true,
+    state: Object.assign({}, EditState.getState()),
   }
-  
+  var readerInst = readerElms(readerSeed)
+  readerInst.style.display = 'none'
+
+  var readerUpdatePromise = function () {
+   triggerUpdate(EditState.state, true, true)
+   return new Promise(function(resolve) {
+    setTimeout(resolve, 100);
+})
+  }
+  var EditSwitch = new NxEditSwitch(editInst, readerInst, readerUpdatePromise)
+  var switchBtn = EditSwitch.getSwitchBtn()
+
+  var editor = getElm('DIV', 'nx-editor')
+  editor.append(editInst, readerInst, switchBtn)
+
+  return editor
+}
