@@ -1,16 +1,8 @@
-import {
-  getThreadsList,
-  loadSrcFile,
-} from "@i-is-as-i-does/nexus-core/src/load/NxSrc"
-import { logErr } from "@i-is-as-i-does/nexus-core/src/logs/NxLog"
-import { registerEditData } from "@i-is-as-i-does/nexus-core/src/storg/NxMemory"
-import { validData } from "@i-is-as-i-does/nexus-core/src/validt/NxStamper"
-import {
-  getElm,
-  iconImage,
-  setHistoryControls,
-  toggleNavEnd,
-} from "../shared/NxCommons.js"
+import { getThreadsList, loadSrcFile } from '@i-is-as-i-does/nexus-core/src/load/NxSrc'
+import { logErr } from '@i-is-as-i-does/nexus-core/src/logs/NxLog'
+import { registerEditData } from '@i-is-as-i-does/nexus-core/src/storg/NxMemory'
+import { validData } from '@i-is-as-i-does/nexus-core/src/validt/NxStamper'
+import { getElm, iconImage, setHistoryControls, toggleNavEnd } from '../shared/NxCommons.js'
 import {
   downloadB64,
   newB64,
@@ -19,194 +11,235 @@ import {
   resetB64,
   saveB64,
   undoB64,
-} from "../shared/NxIcons.js"
-import { getEditState, getHostElm, getOriginData, resetData } from "./NxEdit.js"
-import { getTxt } from "@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate"
-import { splitFlap } from "@i-is-as-i-does/valva/src/modules/aliases"
-import { toggleBtn } from "./NxEditPrc.js"
-import { newData } from "./NxEditStarters.js"
+} from '../shared/NxIcons.js'
+import { getTxt } from '@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate'
+import { vSplitFlap } from '@i-is-as-i-does/valva/src/modules/transitions.js'
+import { stateChangeEvt, toggleDisabled } from './NxEditCommons.js'
+import { newData, newState } from './NxEditStarters.js'
 
-var actionFdbck
-var feedbackrun
-
-var saveBtn
-var resetBtn
-var editMenu
-
-var actCtrls = {
-  ctrls: {
-    prev: { symbol: undoB64, elm: null },
-    next: { symbol: redoB64, elm: null },
-  },
-  position: 0,
-  count: 1,
-}
-
-var resetting = false
-var lastAction
-
-function setActionFeedback() {
-  actionFdbck = getElm("SPAN", "nx-action-feedback")
-}
-
-function downloadBtn() {
-  var dlBtn = getElm("A", "nx-download")
-  dlBtn.append(iconImage(downloadB64, 20))
-  dlBtn.addEventListener("click", function () {
-    var data = Object.assign({}, getEditState().srcData)
-    delete data.index
-    var check = validData(data)
-    if (!check) {
-      displayFeedback("Invalid Nexus data")
-    }
-    data = JSON.stringify(data, undefined, 2)
-    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(data)
-    var anchor = getElm("A")
-    anchor.setAttribute("href", dataStr)
-    anchor.setAttribute("download", "nexus.json")
-    getHostElm().appendChild(anchor)
-    anchor.click()
-    anchor.remove()
-  })
-  return dlBtn
-}
-
-function newDocumenBtn() {
-  var newBtn = getElm("A", "nx-new")
-  newBtn.append(iconImage(newB64, 20))
-  newBtn.addEventListener("click", function () {
-    resetData(newData())
-  })
-  return newBtn
-}
-
-function openBtn() {
-  var inp = fileInput()
-  var btn = getElm("A", "nx-open-file")
-  btn.append(iconImage(openB64, 20))
-  btn.addEventListener("click", function () {
-    inp.click()
-  })
-  var wrap = getElm("SPAN")
-  wrap.append(inp, btn)
-  return wrap
-}
-
-function fileInput() {
-  var inp = getElm("INPUT")
-  inp.type = "file"
-  inp.accept = "application/json"
-  inp.addEventListener("change", function (evt) {
-    loadSrcFile(evt, true)
-      .then((fdata) => {
-        fdata.index = getThreadsList(fdata)
-        resetData(fdata)
-      })
-      .catch((err) => {
-        logErr(err.message)
-        displayFeedback("Invalid source")
-      })
-    inp.value = ""
-  })
-  inp.style.display = "none"
-  return inp
-}
-
-function setSaveBtn() {
-  saveBtn = getElm("A", "nx-save")
-  saveBtn.append(iconImage(saveB64, 20))
-  toggleBtn(saveBtn, true)
-  saveBtn.addEventListener("click", function () {
-    if (!saveBtn.classList.contains("nx-disabled")) {
-      var editState = getEditState()
-      registerEditData(editState.dataUrl, editState.srcData)
-      displayFeedback("saved")
-      toggleBtn(saveBtn, true)
-      setResetStatus()
-    }
-  })
-}
-
-function setResetStatus() {
-  if (getOriginData() !== JSON.stringify(getEditState().srcData)) {
-    toggleBtn(resetBtn, false)
-  } else {
-    toggleBtn(resetBtn, true)
+export class NxEditMenu {
+  constructor(EditState) {
+    this.EditState = EditState
+    this._setMenu()
   }
-}
 
-function setResetBtn() {
-  resetBtn = getElm("A", "nx-reset")
-  resetBtn.append(iconImage(resetB64, 20))
+  getMenuElms() {
+    return this.menu
+  }
 
-  setResetStatus()
-  resetBtn.addEventListener("click", function () {
-    if (!resetBtn.classList.contains("nx-disabled")) {
-      resetData(JSON.parse(getOriginData()))
-      toggleBtn(resetBtn, true)
+  setLastAction(callback, bypass = false) {
+    if (!this.resetting || bypass) {
+      this.lastAction.act = callback
+      this.actCtrls.count = 2
+      this.actCtrls.position = 1
+      toggleNavEnd(this.actCtrls)
+      this.toggleSaveBtn(false)
     }
-  })
-}
-
-function editNav() {
-  var wrp = getElm("DIV", "nx-edit-nav")
-  setActionFeedback()
-  setResetBtn()
-  setSaveBtn()
-
-  var links = getElm("DIV")
-
-  links.append(resetBtn, newDocumenBtn(), openBtn(), saveBtn, downloadBtn())
-  wrp.append(actionFdbck, links)
-  return wrp
-}
-
-function triggerUndoRedo(ctrl) {
-  lastAction(ctrl === "next")
-  toggleSaveBtn(false)
-}
-
-function editActions() {
-  var wrp = getElm("DIV", "nx-edit-actions nx-history-nav")
-  setHistoryControls(actCtrls, triggerUndoRedo, true)
-  wrp.append(actCtrls.ctrls["prev"].elm, actCtrls.ctrls["next"].elm)
-  return wrp
-}
-
-export function setEditMenu() {
-  editMenu = getElm("DIV", "nx-edit-menu")
-  editMenu.append(editNav(), editActions())
-}
-
-export function displayFeedback(msg) {
-  var txt = getTxt(msg)
-  if (feedbackrun) {
-    clearTimeout(feedbackrun)
   }
-  splitFlap(actionFdbck, txt, 25)
-  feedbackrun = setTimeout(function () {
-    splitFlap(actionFdbck, "", 25)
-  }, 1500 + txt.length * 20)
-}
-
-export function toggleSaveBtn(disabled = false) {
-  toggleBtn(saveBtn, disabled)
-}
-
-export function setLastAction(callback, bypass = false) {
-  if (!resetting || bypass) {
-    lastAction = callback
-    actCtrls.count = 2
-    actCtrls.position = 1
-    toggleNavEnd(actCtrls)
-    toggleSaveBtn(false)
+  setResetting(bool) {
+    this.resetting = bool
   }
-}
 
-export function setResetting(bool) {
-  resetting = bool
-}
+  toggleSaveBtn(disabled = false) {
+    toggleDisabled(this.saveBtn, disabled)
+  }
+  _displayFeedback(msg) {
+    var txt = getTxt(msg)
+    if (this.feedbackrun) {
+      clearTimeout(this.feedbackrun)
+    }
+    vSplitFlap(this.actionFdbck, txt, 25)
+    this.feedbackrun = setTimeout(
+      function () {
+        vSplitFlap(this.actionFdbck, '', 25)
+      }.bind(this),
+      1500 + txt.length * 20
+    )
+  }
 
-export function getEditMenu() {
-  return editMenu
+  _resetData(data) {
+    var prvState = this.EditState.getJsonState()
+    if (data === null) {
+      data = newData()
+    }
+
+    var state = newState(data)
+    if (state.srcData.threads.length) {
+      state.threadIndex = 0
+      state.threadId = state.srcData.threads[0].id
+    }
+    var nxtState = JSON.stringify(state)
+    var act = function (redo) {
+      var nstate
+      if (redo) {
+        nstate = nxtState
+      } else {
+        nstate = prvState
+      }
+      this.EditState.setNewState(nstate)
+      this.menu.dispatchEvent(stateChangeEvt)
+    }.bind(this)
+    act(true)
+    this.setLastAction(act, true)
+  }
+
+  _setActionFeedback() {
+    this.feedbackrun = null
+    this.actionFdbck = getElm('SPAN', 'nx-action-feedback')
+  }
+
+  _setDownloadBtn() {
+    this.dlBtn = getElm('A', 'nx-download')
+    this.dlBtn.append(iconImage(downloadB64, 20))
+    this.dlBtn.addEventListener(
+      'click',
+      function () {
+        var data = Object.assign({}, this.EditState.state.srcData)
+        delete data.index
+        var check = validData(data)
+        if (!check) {
+          this._displayFeedback('Invalid Nexus data')
+        }
+        data = JSON.stringify(data, undefined, 2)
+        var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(data)
+        var anchor = getElm('A')
+        anchor.setAttribute('href', dataStr)
+        anchor.setAttribute('download', 'nexus.json')
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+      }.bind(this)
+    )
+  }
+
+  _setNewDocumenBtn() {
+    this.newBtn = getElm('A', 'nx-new')
+    this.newBtn.append(iconImage(newB64, 20))
+    this.newBtn.addEventListener(
+      'click',
+      function () {
+        this._resetData(newData())
+      }.bind(this)
+    )
+  }
+
+  _setOpenBtn() {
+    this._setFileInput()
+    this.openBtn = getElm('A', 'nx-open-file')
+    this.openBtn.append(iconImage(openB64, 20))
+    this.openBtn.addEventListener(
+      'click',
+      function () {
+        this.fileInput.click()
+      }.bind(this)
+    )
+    this.openWrap = getElm('SPAN')
+    this.openWrap.append(this.fileInput, this.openBtn)
+  }
+
+  _setFileInput() {
+    this.fileInput = getElm('INPUT')
+    this.fileInput.type = 'file'
+    this.fileInput.accept = 'application/json'
+    this.fileInput.addEventListener(
+      'change',
+      function (evt) {
+        loadSrcFile(evt, true)
+          .then((fdata) => {
+            fdata.index = getThreadsList(fdata)
+            this._resetData(fdata)
+          })
+          .catch((err) => {
+            logErr(err.message)
+            this._displayFeedback('Invalid source')
+          })
+        this.fileInput.value = ''
+      }.bind(this)
+    )
+    this.fileInput.style.display = 'none'
+  }
+
+  _setSaveBtn() {
+    this.saveBtn = getElm('A', 'nx-save')
+    this.saveBtn.append(iconImage(saveB64, 20))
+    toggleDisabled(this.saveBtn, true)
+    this.saveBtn.addEventListener(
+      'click',
+      function () {
+        if (!this.saveBtn.classList.contains('nx-disabled')) {
+          var editState = this.EditState.state
+          registerEditData(editState.dataUrl, editState.srcData)
+          this._displayFeedback('saved')
+          toggleDisabled(this.saveBtn, true)
+          this._setResetStatus()
+        }
+      }.bind(this)
+    )
+  }
+
+  _setResetStatus() {
+    var disb = true
+    if (this.EditState.originData !== JSON.stringify(this.EditState.state.srcData)) {
+      disb = false
+    }
+    toggleDisabled(this.resetBtn, disb)
+  }
+
+  _setResetBtn() {
+    this.resetBtn = getElm('A', 'nx-reset')
+    this.resetBtn.append(iconImage(resetB64, 20))
+
+    this._setResetStatus()
+    this.resetBtn.addEventListener(
+      'click',
+      function () {
+        if (!this.resetBtn.classList.contains('nx-disabled')) {
+          this._resetData(JSON.parse(this.EditState.originData))
+          toggleDisabled(this.resetBtn, true)
+        }
+      }.bind(this)
+    )
+  }
+
+  _setEditNav() {
+    this._setActionFeedback()
+    this._setResetBtn()
+    this._setNewDocumenBtn()
+    this._setOpenBtn()
+    this._setSaveBtn()
+    this._setDownloadBtn()
+
+    this.editLinks = getElm('DIV')
+    this.editLinks.append(this.resetBtn, this.newBtn, this.openWrap, this.saveBtn, this.dlBtn)
+    this.editNav = getElm('DIV', 'nx-edit-nav')
+    this.editNav.append(this.actionFdbck, this.editLinks)
+  }
+
+  _setEditActions() {
+    this.resetting = false
+    this.lastAction = { act: null }
+    this.actCtrls = {
+      ctrls: {
+        prev: { symbol: undoB64, elm: null },
+        next: { symbol: redoB64, elm: null },
+      },
+      position: 0,
+      count: 1,
+    }
+    this.editActions = getElm('DIV', 'nx-edit-actions nx-history-nav')
+    setHistoryControls(this.actCtrls, this._triggerUndoRedo.bind(this), true)
+    this.editActions.append(this.actCtrls.ctrls['prev'].elm, this.actCtrls.ctrls['next'].elm)
+  }
+
+  _triggerUndoRedo(ctrl) {
+    this.lastAction.act(ctrl === 'next')
+    this.toggleSaveBtn(false)
+  }
+
+  _setMenu() {
+    this._setEditNav()
+    this._setEditActions()
+    this.menu = getElm('DIV', 'nx-edit-menu')
+    this.menu.append(this.editNav, this.editActions)
+  }
 }

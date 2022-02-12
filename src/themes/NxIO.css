@@ -203,8 +203,8 @@
     max-width:340px;
 }
 .nx .nx-thread-header {
-    width: 100%;
-    max-width: 680px;
+    max-width: 100%;
+    width: 680px;
 }
 
 .nx .nx-threads-list, .nx .nx-edit .nx-index, .nx .nx-local {
@@ -431,12 +431,6 @@ height: 20px;
 
 .nx .nx-content-media a.nx-external-link {
     text-decoration: underline dotted #444 1px;
-}
-
-.nx .nx-content-media a.nx-external-link:after {
-    content: "↗";
-    padding-left: 2px;
-    font-size: 0.8rem;
 }
 
 .nx .nx-content-media {

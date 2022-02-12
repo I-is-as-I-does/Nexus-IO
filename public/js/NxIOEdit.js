@@ -1,1072 +1,616 @@
 "use strict";
 (self["webpackChunknexus_io"] = self["webpackChunknexus_io"] || []).push([["NxIOEdit"],{
 
-/***/ "./src/editor/NxEdit.js":
-/*!******************************!*\
-  !*** ./src/editor/NxEdit.js ***!
-  \******************************/
+/***/ "./src/editor/NxAddBtn.js":
+/*!********************************!*\
+  !*** ./src/editor/NxAddBtn.js ***!
+  \********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "resetData": () => (/* binding */ resetData),
-/* harmony export */   "getOriginData": () => (/* binding */ getOriginData),
-/* harmony export */   "getHostElm": () => (/* binding */ getHostElm),
-/* harmony export */   "setEditState": () => (/* binding */ setEditState),
-/* harmony export */   "authorBlock": () => (/* binding */ authorBlock),
-/* harmony export */   "editIndexBlock": () => (/* binding */ editIndexBlock),
-/* harmony export */   "editLocalBlock": () => (/* binding */ editLocalBlock),
-/* harmony export */   "editDistantBlock": () => (/* binding */ editDistantBlock),
-/* harmony export */   "getEditState": () => (/* binding */ getEditState)
+/* harmony export */   "addBtn": () => (/* binding */ addBtn),
+/* harmony export */   "toggleAddBtn": () => (/* binding */ toggleAddBtn)
 /* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
-/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
-/* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
-/* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/storg/NxMemory.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxMemory.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxStamper.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxStamper.js");
-/* harmony import */ var _NxEditStarters_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NxEditStarters.js */ "./src/editor/NxEditStarters.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/load/NxSrc.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
-/* harmony import */ var _NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxEditComps.js */ "./src/editor/NxEditComps.js");
-/* harmony import */ var _NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./NxEditPrc.js */ "./src/editor/NxEditPrc.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_base_NxHost_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/base/NxHost.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
-/* harmony import */ var _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/NxIcons.js */ "./src/shared/NxIcons.js");
-/* harmony import */ var _NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./NxEditMenu.js */ "./src/editor/NxEditMenu.js");
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-var hostElm
-var editState = {
-  dataUrl: "nexus-tmp",
-  srcData: null,
-  threadId: "/",
-  threadIndex: -1,
-}
-var originData = null
-
-var threadChange = new CustomEvent("editThreadChange")
-var upDownEvent = new CustomEvent("IndexChange")
-
-var editIndex = null
-var editLocal = null
-var editDistant = null
-var authorForm
-var btnSrc = {
-  up: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_12__.upB64,
-  down: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_12__.downB64,
-}
-var addThreadBtn
-
-var threadsMap = {}
-// @doc originIdx: { id: currentId, idx: currentIdx, linked :{}}
-
-function moveItem(ident, siblingIdent, up = false) {
-  var from = threadsMap[ident].idx
-  var to = from + 1
-  if (up) {
-    to = from - 1
-  }
-  editState.srcData.index.splice(
-    to,
-    0,
-    editState.srcData.index.splice(from, 1)[0]
-  )
-  editState.srcData.threads.splice(
-    to,
-    0,
-    editState.srcData.threads.splice(from, 1)[0]
-  )
-  threadsMap[ident].idx = to
-  threadsMap[siblingIdent].idx = from
-}
-
-function toggleActiveBtn(ident, btn) {
-  if (threadsMap[ident].idx === 0) {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.toggleBtn)(btn["up"], true)
-  } else {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.toggleBtn)(btn["up"], false)
-  }
-  if (threadsMap[ident].idx + 1 === editState.srcData.index.length) {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.toggleBtn)(btn["down"], true)
-  } else {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.toggleBtn)(btn["down"], false)
-  }
-}
-
-function permuteThread(goingUp, goingDown) {
-  editIndex.removeChild(goingUp)
-  editIndex.insertBefore(goingUp, goingDown)
-  goingDown.dispatchEvent(upDownEvent)
-  goingUp.dispatchEvent(upDownEvent)
-}
-
-function moveItemHandler(li, it, ident) {
-  var act = function (redo) {
-    var isUp = it == "up"
-    if (!redo) {
-      isUp = !isUp
-    }
-    var sibling
-    if (isUp && threadsMap[ident].idx !== 0) {
-      sibling = li.previousSibling
-      moveItem(ident, sibling.dataset.ident, true)
-      permuteThread(li, sibling)
-    } else if (
-      !isUp &&
-      threadsMap[ident].idx + 1 !== editState.srcData.index.length
-    ) {
-      sibling = li.nextSibling
-      moveItem(ident, sibling.dataset.ident, false)
-      permuteThread(sibling, li)
-    }
-  }
-
-  ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setLastAction)(act)
-  act(true)
-}
-
-function setMoveBtns(li, ident) {
-  var dv = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-move")
-  var btn = {
-    up: null,
-    down: null,
-  }
-  li.addEventListener("IndexChange", function () {
-    toggleActiveBtn(ident, btn)
-  })
-  Object.keys(btn).forEach((it) => {
-    btn[it] = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("A", "nx-edit-move-" + it)
-    btn[it].append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.iconImage)(btnSrc[it], 16))
-    dv.append(btn[it])
-
-    btn[it].addEventListener("click", function () {
-      moveItemHandler(li, it, ident)
-    })
-  })
-  toggleActiveBtn(ident, btn)
-  li.append(dv)
-}
-
-function threadLocalForm(ident, indexElm) {
-  var form = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-thread-local-form")
-
-  var fieldset1 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
-  var idCallback = function (inp) {
-    threadsMap[ident].id = inp.value
-  }
-  var titleCallback = function (inp) {
-    var targ = indexElm.querySelector(".nx-thread-title")
-    if (targ.textContent !== inp.value) {
-      targ.textContent = inp.value
-    }
-  }
-  fieldset1.append(inputElm(["threads", ident, "id"], idCallback))
-  fieldset1.append(inputElm(["threads", ident, "title"], titleCallback))
-  fieldset1.append(inputElm(["threads", ident, "description"]))
-
-  var fieldset2 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
-  var fields = ["timestamp", "main", "aside"]
-  fields.forEach((field) => {
-    fieldset2.append(inputElm(["threads", ident, "content", field]))
-  })
-
-  var fieldset3 = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FIELDSET")
-
-  var typeInp = inputElm(["threads", ident, "content", "media", "type"])
-  var typeCallback = function (inp, valid) {
-    if (valid) {
-      var item = typeInp.querySelector(
-        "[data-item=" + (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.resolveMediaType)(inp.value) + "]"
-      )
-      if (item) {
-        item.click()
-      }
-    }
-  }
-  fieldset3.append(
-    inputElm(["threads", ident, "content", "media", "url"], typeCallback)
-  )
-  fieldset3.append(typeInp)
-  fieldset3.append(inputElm(["threads", ident, "content", "media", "caption"]))
-
-  form.append(
-    (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("local thread"),
-    fieldset1,
-    (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("content"),
-    fieldset2,
-    (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("media", 2),
-    fieldset3
-  )
-  return form
-}
-
-function setAddThreadBtn() {
-  addThreadBtn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.addBtn)()
-  ;(0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(addThreadBtn, editState.srcData.index, "threads")
-
-  addThreadBtn.addEventListener("click", function () {
-    if (!addThreadBtn.disabled) {
-      var ident = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__.randomString)(21)
-      var randomId = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__.randomString)(10)
-      var idx = editState.srcData.index.length
-      threadsMap[ident] = { id: randomId, idx: idx, linked: {} }
-
-      var callb = null
-      if (idx - 1 !== -1) {
-        callb = function () {
-          editIndex.childNodes[idx - 1].dispatchEvent(upDownEvent)
-        }
-      }
-
-      editState.srcData.threads.push((0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_7__.newThread)(randomId))
-      editState.srcData.index.push(randomId)
-      var map = threadElms(ident)
-      var ks = ["local", "distant"]
-
-      ks.forEach((k) => {
-        map[k].parent.append(map[k].child)
-      })
-
-      ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(
-        map.index.parent,
-        map.index.child,
-        false,
-        true,
-        200,
-        callb
-      )
-      ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.toggleSaveBtn)(false)
-      ;(0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(addThreadBtn, editState.srcData.index, "threads")
-    }
-  })
-}
-
-function linkInput(addLinkBtn, form, ident, i) {
-  var lkident = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__.randomString)(21)
-  threadsMap[ident].linked[lkident] = { idx: i }
-  var linkwrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-distant-link")
-  var store = { linked: null }
-  var elm = inputElm(["threads", ident, "linked", lkident], null, store)
-  var dltBtn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.deleteLinkBtn)()
-  var delwrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-distant-link-action")
-  delwrap.append(dltBtn)
-
-  dltBtn.addEventListener("click", () => {
-    var act = function (redo) {
-      var lidx = threadsMap[ident].linked[lkident].idx
-      var tidx = threadsMap[ident].idx
-      if (redo) {
-        (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(linkwrap, 200, function () {
-          linkwrap.remove()
-        })
-        var isLast = lidx === editState.srcData.threads[tidx].linked.length - 1
-        editState.srcData.threads[tidx].linked.splice(lidx, 1)
-        if (!isLast) {
-          for (let [k, v] of Object.entries(threadsMap[ident].linked)) {
-            if (v.idx > lidx) {
-              threadsMap[ident].linked[k].idx = v.idx - 1
-            }
-          }
-        }
-      } else {
-        if (lidx > editState.srcData.threads[tidx].linked.length - 1) {
-          editState.srcData.threads[tidx].linked.push(store.linked.value)
-          ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(form, linkwrap, false, true, 200)
-        } else {
-          editState.srcData.threads[tidx].linked.splice(
-            lidx,
-            0,
-            store.linked.value
-          )
-          for (let [k, v] of Object.entries(threadsMap[ident].linked)) {
-            if (v.idx >= lidx && k !== lkident) {
-              threadsMap[ident].linked[k].idx = v.idx + 1
-            }
-          }
-          var nextSibling = form.childNodes[lidx]
-          form.insertBefore(linkwrap, nextSibling)
-          ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(linkwrap, 200)
-        }
-      }
-      (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(addLinkBtn, editState.srcData.threads[tidx].linked, "linked")
-    }
-    ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setLastAction)(act)
-    act(true)
-  })
-  linkwrap.append(elm, delwrap)
-  return linkwrap
-}
-
-function threadDistantForm(ident) {
-  var form = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-thread-distant-form")
-  var addLinkBtn = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.addBtn)()
-  ;(0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(
-    addLinkBtn,
-    editState.srcData.threads[threadsMap[ident].idx].linked,
-    "linked"
-  )
-  addLinkBtn.addEventListener("click", () => {
-    if (!addLinkBtn.disabled) {
-      editState.srcData.threads[threadsMap[ident].idx].linked.push("")
-      ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(
-        form,
-        linkInput(
-          addLinkBtn,
-          form,
-          ident,
-          editState.srcData.threads[threadsMap[ident].idx].linked.length - 1
-        ),
-        false,
-        true,
-        200
-      )
-      ;(0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(
-        addLinkBtn,
-        editState.srcData.threads[threadsMap[ident].idx].linked,
-        "linked"
-      )
-    }
-  })
-
-  if (
-    !Object.prototype.hasOwnProperty.call(
-      editState.srcData.threads[threadsMap[ident].idx],
-      "linked"
-    )
-  ) {
-    editState.srcData.threads[threadsMap[ident].idx].linked = []
-  } else if (editState.srcData.threads[threadsMap[ident].idx].linked.length) {
-    var elms = []
-    for (
-      var i = 0;
-      i < editState.srcData.threads[threadsMap[ident].idx].linked.length;
-      i++
-    ) {
-      var elm = linkInput(addLinkBtn, form, ident, i)
-      elms.push(elm)
-    }
-    form.append(...elms)
-  }
-
-  var formCnt = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV")
-  formCnt.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("linked threads"), form, addLinkBtn)
-
-  return formCnt
-}
-
-function threadLi(ident) {
-  var li = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("LI")
-
-  if (editState.threadId !== threadsMap[ident].id) {
-    li.style.display = "none"
-  }
-  li.addEventListener("editThreadChange", function () {
-    if (editState.threadId === threadsMap[ident].id) {
-      setTimeout(function () {
-        (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(li, 200)
-      }, 200)
-    } else {
-      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(li, 200)
-    }
-  })
-  return li
-}
-
-function indexLink(ident) {
-  var itemState = (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.getAltState)(
-    editState,
-    threadsMap[ident].id,
-    threadsMap[ident].idx
-  )
-  var indLk = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.baseViewLink)(itemState, false)
-  if (editState.threadId === threadsMap[ident].id) {
-    indLk.classList.add("nx-on-display")
-  }
-
-  indLk.addEventListener("click", () => {
-    if (editState.threadId !== threadsMap[ident].id) {
-      editState.threadId = threadsMap[ident].id
-      editState.threadIndex = threadsMap[ident].idx
-      var prev = editIndex.querySelector(".nx-on-display")
-      if (prev) {
-        prev.classList.remove("nx-on-display")
-      }
-      indLk.classList.add("nx-on-display")
-      editLocal.childNodes.forEach((lchild) => {
-        lchild.dispatchEvent(threadChange)
-      })
-      editDistant.childNodes.forEach((dchild) => {
-        dchild.dispatchEvent(threadChange)
-      })
-    }
-  })
-
-  return indLk
-}
-
-function threadElms(ident) {
-  var map = {
-    index: { parent: editIndex, child: null, link: null, del: null },
-    local: { parent: editLocal, child: null },
-    distant: { parent: editDistant, child: null },
-  }
-
-  map.distant.child = threadLi(ident)
-  map.local.child = threadLi(ident)
-
-  map.index.child = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("LI")
-  map.index.child.dataset.ident = ident
-  map.index.link = indexLink(ident)
-  map.index.child.append(map.index.link)
-  setMoveBtns(map.index.child, ident)
-
-  map.distant.child.append(threadDistantForm(ident))
-  map.local.child.append(threadLocalForm(ident, map.index.child))
-
-  map.index.del = deleteThreadElm(
-    map.local.child,
-    map.distant.child,
-    map.index.child,
-    ident
-  )
-  map.index.child.append(map.index.del)
-
-  return map
-}
-
-function deleteEvent(localLi, distantLi, indexLi, ident) {
-  var threadData = Object.assign(
-    {},
-    editState.srcData.threads[threadsMap[ident].idx]
-  )
-  var act = function (redo) {
-    var idx = threadsMap[ident].idx
-    var len = editState.srcData.index.length
-
-    if (redo) {
-      if (idx < len - 1) {
-        for (let [k, v] of Object.entries(threadsMap)) {
-          if (v.idx > idx) {
-            threadsMap[k].idx = v.idx - 1
-          }
-        }
-      }
-
-      editState.srcData.index.splice(idx, 1)
-      editState.srcData.threads.splice(idx, 1)
-      ;[distantLi, localLi, indexLi].forEach((elm) => {
-        (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(elm, 200, function () {
-          elm.remove()
-        })
-      })
-
-      if (len > 1) {
-        if (idx === 0) {
-          indexLi.nextSibling.dispatchEvent(upDownEvent)
-        } else if (idx === len - 1) {
-          indexLi.previousSibling.dispatchEvent(upDownEvent)
-        }
-      }
-
-      if (editState.threadId === threadsMap[ident].id) {
-        editState.threadId = "/"
-        editState.threadIndex = -1
-        distantLi.dispatchEvent(threadChange)
-        localLi.dispatchEvent(threadChange)
-      } else if (editState.threadIndex > idx) {
-        editState.threadIndex--
-      }
-    } else {
-      editState.srcData.index.splice(idx, 0, threadData.id)
-      editState.srcData.threads.splice(idx, 0, threadData)
-
-      if (idx <= len - 1) {
-        for (let [k, v] of Object.entries(threadsMap)) {
-          if (v.id !== threadData.id && v.idx >= idx) {
-            threadsMap[k].idx = v.idx + 1
-          }
-        }
-
-        var next = editIndex.childNodes[idx]
-        editIndex.insertBefore(indexLi, next)
-        if (idx === 0) {
-          next.dispatchEvent(upDownEvent)
-        }
-      } else {
-        editIndex.append(indexLi)
-        if (len > 1) {
-          indexLi.previousSibling.dispatchEvent(upDownEvent)
-        }
-      }
-
-      editLocal.append(localLi)
-      editDistant.append(distantLi)
-      ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeIn)(indexLi, 200)
-      indexLi.firstChild.click()
-    }
-    (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.toggleAddBtn)(addThreadBtn, editState.srcData.index, "threads")
-  }
-  ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setLastAction)(act)
-  act(true)
-}
-
-function deleteThreadElm(localLi, distantLi, indexLi, ident) {
-  var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("BUTTON", "nx-delete-thread")
-  btn.type = "button"
-  btn.textContent = "-"
-
-  btn.addEventListener("click", function () {
-    deleteEvent(localLi, distantLi, indexLi, ident)
-  })
+function addBtn() {
+  var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)('BUTTON', 'nx-add-link')
+  btn.type = 'button'
+  btn.textContent = '+'
   return btn
 }
 
-function setAuthorValue(ref, value) {
-  if (!editState.srcData.author) {
-    editState.srcData.author = {}
+function toggleAddBtn(btn, haystack, itemsKey) {
+  var disabled = false
+  if (_i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_0__.itemsMinMax[itemsKey][1] <= haystack.length) {
+    disabled = true
   }
-  editState.srcData.author[ref[1]] = value
-  return
-}
-
-function setThreadIndex(idx) {
-  if (!editState.srcData.threads) {
-    editState.srcData.threads = []
-  } else if (typeof editState.srcData.threads[idx] === "undefined") {
-    editState.srcData.threads[idx] = {}
+  if (btn.disabled !== disabled) {
+    btn.classList.toggle('nx-disabled')
+    btn.disabled = disabled
   }
-}
-
-function setThreadId(ref, idx, value) {
-  threadsMap[ref[1]].id = value
-  editState.srcData.index[idx] = value
-  editState.srcData.threads[idx].id = value
-}
-
-function setThreadInfo(ref, idx, value) {
-  editState.srcData.threads[idx][ref[2]] = value
-}
-
-function setContentValue(ref, idx, value) {
-  if (!editState.srcData.threads[idx].content) {
-    editState.srcData.threads[idx].content = {}
-  }
-  if (ref[3] !== "media") {
-    editState.srcData.threads[idx].content[ref[3]] = value
-    return
-  }
-  if (!editState.srcData.threads[idx].content.media) {
-    editState.srcData.threads[idx].content.media = {}
-  }
-  editState.srcData.threads[idx].content.media[ref[4]] = value
-  return
-}
-
-function setLinkedValue(ref, idx, value) {
-  if (!editState.srcData.threads[idx].linked) {
-    editState.srcData.threads[idx].linked = [value]
-  } else {
-    editState.srcData.threads[idx].linked[
-      threadsMap[ref[1]].linked[ref[3]].idx
-    ] = value
-  }
-}
-
-function setNewValue(ref, value) {
-  if (editState.srcData === null) {
-    editState.srcData = {}
-    editState.srcData.index = []
-  }
-  if (ref[0] === "author") {
-    return setAuthorValue(ref, value)
-  }
-  var idx = threadsMap[ref[1]].idx
-  setThreadIndex(idx)
-
-  if (ref[2] === "id") {
-    return setThreadId(ref, idx, value)
-  }
-  if (!["linked", "content"].includes(ref[2])) {
-    return setThreadInfo(ref, idx, value)
-  }
-
-  if (ref[2] === "content") {
-    return setContentValue(ref, idx, value)
-  }
-  setLinkedValue(ref, idx, value)
-}
-
-function fieldValue(ref) {
-  if (editState.srcData) {
-    if (ref[0] == "author") {
-      return editState.srcData[ref[0]][ref[1]]
-    }
-    var idx = threadsMap[ref[1]].idx
-    if (!["linked", "content"].includes(ref[2])) {
-      return editState.srcData.threads[idx][ref[2]]
-    }
-    if (ref[2] === "content") {
-      if (ref[3] !== "media") {
-        return editState.srcData.threads[idx].content[ref[3]]
-      }
-      return editState.srcData.threads[idx].content.media[ref[4]]
-    }
-    return editState.srcData.threads[idx].linked[
-      threadsMap[ref[1]].linked[ref[3]].idx
-    ]
-  }
-  return ""
-}
-
-function inputElm(ref, callback = null, store = null) {
-  var val = fieldValue(ref)
-
-  var pos = ref.length - 1
-  if (ref[pos - 1] === "linked") {
-    pos--
-  }
-  var field = ref[pos]
-  pos--
-  if (ref[pos - 1] === "threads") {
-    pos--
-  }
-  var parent = ref[pos]
-
-  var inp
-  if (["about", "description", "main", "aside", "caption"].includes(field)) {
-    inp = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.textareaInput)(val)
-  } else if (field == "timestamp") {
-    inp = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.dateInput)(val)
-  } else {
-    inp = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.textInput)(val)
-  }
-  inp.classList.add("nx-edit-input")
-
-  var hook = ref.join("-")
-  inp.id = hook
-  inp.name = hook
-  if (
-    [
-      "handle",
-      "title",
-      "main",
-      "id",
-      "url",
-      "type",
-      "timestamp",
-      "linked",
-    ].includes(field)
-  ) {
-    inp.required = true
-  }
-  var ident = field
-  if (field === "linked") {
-    ident = "url"
-  }
-
-  var lb = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.baseLabel)(ident)
-  var indc = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("SPAN", "nx-edit-indication")
-  var fdbck = (0,_NxEditComps_js__WEBPACK_IMPORTED_MODULE_9__.invalidSp)()
-  lb.append(indc, fdbck)
-
-  switch (field) {
-    case "url":
-      indc.textContent = "[http]"
-      inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.urlPattern
-      break
-    case "linked":
-      indc.textContent = "[http]"
-      inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.urlPattern
-      break
-    case "id":
-      indc.textContent = "[A-Za-z0-9-][3-36]"
-      inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.idPattern
-      break
-    case "type":
-      inp.pattern = "(" + _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.supportedMediaTypes.join("|") + ")"
-      break
-    case "timestamp":
-      break
-    default:
-      var minmax = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.charMinMax[field]
-      indc.textContent = "[" + minmax[0] + "-" + minmax[1] + "]"
-      inp.setAttribute("maxlength", minmax[1])
-      inp.setAttribute("minlength", minmax[0])
-  }
-
-  if (store) {
-    store[field] = inp
-  }
-
-  var wrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-edit-input nx-edit-" + parent + "-" + field)
-  wrap.append(lb)
-  if (field === "type") {
-    var items = _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_0__.supportedMediaTypes
-    wrap.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.selectDropDown)(items, inp, null, "nx-edit-media-type-select"))
-  } else {
-    wrap.append(inp)
-  }
-
-  setInputEvt(ref, inp, fdbck, callback)
-  inputEvtHandler(ref, inp, fdbck, callback)
-
-  return wrap
-}
-
-function inputEvtHandler(ref, inp, fdbck, callback) {
-  var valid = inp.checkValidity()
-  var validPromise = null
-
-  if ((valid && ref.includes("url")) || ref.includes("linked")) {
-    valid = (0,_i_is_as_i_does_nexus_core_src_validt_NxStamper_js__WEBPACK_IMPORTED_MODULE_6__.isValidUrl)(inp.value)
-    if (valid && ref.includes("linked")) {
-      valid = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.isUnique)(
-        editState.srcData.threads[threadsMap[ref[1]].idx].linked,
-        inp.value,
-        threadsMap[ref[1]].linked[ref[3]].idx
-      )
-      if (valid) {
-        validPromise = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_8__.getSrcData)(inp.value)
-          .then(() => {
-            return true
-          })
-          .catch(() => {
-            return false
-          })
-      }
-    }
-  } else if (ref.includes("id")) {
-    var nId = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.uniqueId)(inp.value, threadsMap[ref[1]].idx)
-    if (nId !== inp.value) {
-      inp.value = nId
-    }
-    valid = true
-  }
-
-  if (validPromise === null) {
-    validPromise = Promise.resolve(valid)
-  }
-
-  validPromise.then((isValid) => {
-    setNewValue(ref, inp.value)
-    ;(0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.setFeedbackIcon)(fdbck, isValid)
-    if (typeof callback === "function") {
-      callback(inp, isValid)
-    }
-  })
-}
-
-function setInputEvt(ref, inp, fdbck, callback) {
-  var c = 0
-  var undone = ""
-  var prev = inp.value
-  inp.addEventListener("focus", function () {
-    prev = inp.value
-  })
-  inp.addEventListener("change", function () {
-    inputEvtHandler(ref, inp, fdbck, callback)
-    if (c > 0) {
-      var act = function (redo) {
-        if (redo) {
-          inp.value = undone
-        } else {
-          undone = inp.value
-          inp.value = prev
-        }
-        inputEvtHandler(ref, inp, fdbck, callback)
-      }
-      ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setLastAction)(act)
-    } else {
-      c++
-    }
-  })
-}
-
-function setAuthorForm() {
-  authorForm = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("FORM", "nx-edit-author")
-  setAuthorInputs()
-}
-
-function setAuthorInputs(ease = false) {
-  var fields = ["handle", "url", "about"]
-  fields.forEach((field) => {
-    var inp = inputElm(["author", field])
-    if (ease) {
-      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(authorForm, inp, false, true, 200)
-    } else {
-      authorForm.append(inp)
-    }
-  })
-}
-
-function setThreads(ease = false) {
-  var items = editState.srcData.index
-
-  if (items.length) {
-    (0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setResetting)(true)
-    var callb = null
-    for (var i = 0; i < items.length; i++) {
-      if (i === items.length - 1) {
-        callb = function () {
-          (0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setResetting)(false)
-        }
-      }
-      setThread(i, items[i], callb, ease)
-    }
-  }
-}
-
-function setThread(idx, id, callb, ease = false) {
-  var ident = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_3__.randomString)(21)
-  threadsMap[ident] = { id: id, idx: idx, linked: {} }
-
-  var map = threadElms(ident)
-
-  for (let [k, elmSet] of Object.entries(map)) {
-    if (ease && (k === "index" || id === editState.threadId)) {
-      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.insertDiversion)(elmSet.parent, elmSet.child, false, true, 200, callb)
-    } else {
-      elmSet.parent.append(elmSet.child)
-      if (callb) {
-        callb()
-      }
-    }
-  }
-}
-
-function setThreadsForms() {
-  editIndex = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("UL", "nx-edit-index")
-  editLocal = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("UL", "nx-edit-local")
-  editDistant = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("UL", "nx-edit-distant")
-  setThreads()
-}
-
-function resetData(data) {
-  var prvState = JSON.stringify(editState)
-  if (data === null) {
-    data = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_7__.newData)()
-  }
-
-  var state = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.newState)(data)
-  if (state.srcData.threads.length) {
-    state.threadIndex = 0
-    state.threadId = state.srcData.threads[0].id
-  }
-  var nxtState = JSON.stringify(state)
-  var act = function (redo) {
-    if (editState.srcData.threads.length) {
-      var parents = [authorForm, editIndex, editLocal, editDistant]
-      parents.forEach((parent, p) => {
-        var childr = Array.from(parent.childNodes)
-        var lastp = p === parents.length - 1
-        childr.forEach((child, c) => {
-          var prc = null
-          if (lastp && c === childr.length - 1) {
-            prc = function () {
-              var nstate
-              if (redo) {
-                nstate = nxtState
-              } else {
-                nstate = prvState
-              }
-              editState = Object.assign({}, JSON.parse(nstate))
-              setAuthorInputs(true)
-              setThreads(true)
-            }
-          }
-          (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_2__.easeOut)(child, 200, function () {
-            child.remove()
-            if (prc) {
-              prc()
-            }
-          })
-        })
-      })
-    }
-  }
-  act(true)
-  ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setLastAction)(act, true)
-}
-
-function getOriginData() {
-  return originData
-}
-
-function getHostElm() {
-  return hostElm
-}
-
-function setEditState(state, nxelm) {
-  hostElm = nxelm
-  var url = "nexus-tmp"
-  var state = state
-  var data
-
-  if ((0,_i_is_as_i_does_nexus_core_src_base_NxHost_js__WEBPACK_IMPORTED_MODULE_11__.getQuery)("new")) {
-    data = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_7__.newData)()
-    state = null
-  } else {
-    if (state.dataUrl) {
-      url = state.dataUrl
-    }
-    data = (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_5__.getStoredEditData)(url)
-    if (data === null) {
-      if (state.srcData !== null) {
-        data = state.srcData
-      } else {
-        data = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_7__.newData)()
-      }
-      (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory_js__WEBPACK_IMPORTED_MODULE_5__.registerEditData)(url, data)
-    }
-  }
-
-  if (!data.index) {
-    data.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc_js__WEBPACK_IMPORTED_MODULE_8__.getThreadsList)(data)
-  }
-
-  if (state !== null && state.srcData !== null) {
-    originData = JSON.stringify(state.srcData)
-  } else {
-    originData = JSON.stringify(data)
-  }
-
-  var id = data.threads[0].id
-  var idx = 0
-
-  if (state && state.threadId !== "/" && data.index.includes(state.threadId)) {
-    id = state.threadId
-    idx = data.index.indexOf(state.threadId)
-  }
-
-  editState = (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_10__.newState)(data, url, id, idx)
-
-  ;(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_13__.setEditMenu)()
-  setThreadsForms()
-  setAuthorForm()
-  setAddThreadBtn()
-}
-
-function authorBlock() {
-  return (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.blockWrap)("author", [authorForm], (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("author"))
-}
-function editIndexBlock() {
-  return (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.blockWrap)(
-    "threads-list",
-    [editIndex, addThreadBtn],
-    (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.landmarkElm)("threads")
-  )
-}
-function editLocalBlock() {
-  return (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.blockWrap)("local", [editLocal], false)
-}
-function editDistantBlock() {
-  return (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.blockWrap)("distant", [editDistant], false)
-}
-function getEditState() {
-  return editState
 }
 
 
 /***/ }),
 
-/***/ "./src/editor/NxEditComps.js":
-/*!***********************************!*\
-  !*** ./src/editor/NxEditComps.js ***!
-  \***********************************/
+/***/ "./src/editor/NxEditCommons.js":
+/*!*************************************!*\
+  !*** ./src/editor/NxEditCommons.js ***!
+  \*************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "textInput": () => (/* binding */ textInput),
-/* harmony export */   "textareaInput": () => (/* binding */ textareaInput),
-/* harmony export */   "dateInput": () => (/* binding */ dateInput),
-/* harmony export */   "baseLabel": () => (/* binding */ baseLabel),
-/* harmony export */   "deleteLinkBtn": () => (/* binding */ deleteLinkBtn),
-/* harmony export */   "addBtn": () => (/* binding */ addBtn),
-/* harmony export */   "invalidSp": () => (/* binding */ invalidSp),
-/* harmony export */   "toggleAddBtn": () => (/* binding */ toggleAddBtn)
+/* harmony export */   "mediaGuessMap": () => (/* binding */ mediaGuessMap),
+/* harmony export */   "stateChangeEvt": () => (/* binding */ stateChangeEvt),
+/* harmony export */   "threadChangeEvt": () => (/* binding */ threadChangeEvt),
+/* harmony export */   "updownEvt": () => (/* binding */ updownEvt),
+/* harmony export */   "toggleDisabled": () => (/* binding */ toggleDisabled),
+/* harmony export */   "resolveMediaType": () => (/* binding */ resolveMediaType),
+/* harmony export */   "convertToId": () => (/* binding */ convertToId),
+/* harmony export */   "isUnique": () => (/* binding */ isUnique),
+/* harmony export */   "uniqueId": () => (/* binding */ uniqueId)
 /* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxElmTranslate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
-/* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
-/* harmony import */ var _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxIcons.js */ "./src/shared/NxIcons.js");
+/* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
 
 
 
-
-
-
-function textInput(val) {
-  var inp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("INPUT", "nx-edit-text")
-  inp.type = "text"
-  inp.value = val
-  return inp
+const mediaGuessMap = {
+  image: ['jpg', 'jpeg', 'gif', 'svg', 'png', 'webp'],
+  video: ['mp4', 'webm'],
+  audio: ['mp3'],
 }
 
-function textareaInput(val) {
-  var inp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("TEXTAREA", "nx-edit-textarea")
-  inp.textContent = val
-  return inp
-}
-function dateInput(val) {
-  var inp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("INPUT", "nx-edit-date")
-  inp.type = "datetime-local"
-  inp.value = val
-  return inp
-}
+const stateChangeEvt = new CustomEvent('StateChange')
+const threadChangeEvt = new CustomEvent('ThreadChange')
+const updownEvt = new CustomEvent('IndexChange')
 
-function baseLabel(field) {
-  var lb = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("LABEL", "nx-edit-label")
-  lb.for = field
-  var title = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("SPAN", "nx-edit-title")
-  title.textContent = (0,_i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate_js__WEBPACK_IMPORTED_MODULE_0__.getTxt)(field)
-  ;(0,_i_is_as_i_does_nexus_core_src_transl_NxElmTranslate_js__WEBPACK_IMPORTED_MODULE_1__.registerTranslElm)(title, field)
-  lb.append(title)
-  return lb
-}
-
-function deleteLinkBtn() {
-  var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("BUTTON", "nx-delete-link")
-  btn.type = "button"
-  btn.textContent = "-"
-  return btn
-}
-
-function addBtn() {
-  var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("BUTTON", "nx-add-link")
-  btn.type = "button"
-  btn.textContent = "+"
-  return btn
-}
-
-function invalidSp() {
-  var sp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.getElm)("SPAN", "nx-edit-feedback")
-  sp.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_3__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_4__.invalidB64))
-  return sp
-}
-
-function toggleAddBtn(btn, haystack, itemsKey) {
-  var disabled = false
-  if (_i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_2__.itemsMinMax[itemsKey][1] <= haystack.length) {
-    disabled = true
+function toggleDisabled(elm, disabled = false) {
+  var hasDisbClass = elm.classList.contains('nx-disabled')
+  if (!disabled && hasDisbClass) {
+    elm.classList.remove('nx-disabled')
+  } else if (disabled && !hasDisbClass) {
+    elm.classList.add('nx-disabled')
   }
-  if (btn.disabled !== disabled) {
-    btn.classList.toggle("nx-disabled")
-    btn.disabled = disabled
+}
+
+function resolveMediaType(val) {
+  for (var p = 0; p < _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia.length; p++) {
+    if (val.includes(_i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia[p])) {
+      return _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia[p]
+    }
+  }
+  var ext = val.split('.').pop()
+  for (let [type, exts] of Object.entries(mediaGuessMap)) {
+    if (exts.includes(ext)) {
+      return type
+    }
+  }
+
+  return 'page'
+}
+
+function convertToId(title) {
+  return (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiacritics)(title)
+    .trim()
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
+function isUnique(haystack, needle, excludeIdx) {
+  if (haystack.indexOf(needle) !== -1) {
+    for (var c = 0; c < haystack.length; c++) {
+      if (c !== excludeIdx && haystack[c] === needle) {
+        return false
+      }
+    }
+  }
+  return true
+}
+
+function uniqueId(idsList, id, idx) {
+  id = convertToId(id)
+  if (!isUnique(idsList, id, idx)) {
+    var sp = id.split('-')
+    var last = sp.pop()
+    var incr
+    if (!isNaN(last)) {
+      incr = parseInt(last)
+      incr++
+    } else {
+      sp.push(last)
+      incr = 1
+    }
+    id = sp.join('-')
+    while (idsList.includes(id + '-' + incr)) {
+      incr++
+    }
+    id += '-' + incr
+  }
+  return id
+}
+
+
+/***/ }),
+
+/***/ "./src/editor/NxEditInstance.js":
+/*!**************************************!*\
+  !*** ./src/editor/NxEditInstance.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NxEditInstance": () => (/* binding */ NxEditInstance)
+/* harmony export */ });
+/* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/transitions.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/transitions.js");
+/* harmony import */ var _shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/NxCommons */ "./src/shared/NxCommons.js");
+/* harmony import */ var _shared_NxIcons__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/NxIcons */ "./src/shared/NxIcons.js");
+/* harmony import */ var _NxAddBtn__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxAddBtn */ "./src/editor/NxAddBtn.js");
+/* harmony import */ var _NxEditCommons__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./NxEditCommons */ "./src/editor/NxEditCommons.js");
+/* harmony import */ var _NxEditMenu__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./NxEditMenu */ "./src/editor/NxEditMenu.js");
+/* harmony import */ var _NxEditStarters__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NxEditStarters */ "./src/editor/NxEditStarters.js");
+/* harmony import */ var _NxInputsFactory__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NxInputsFactory */ "./src/editor/NxInputsFactory.js");
+/* harmony import */ var _NxLocalFormFactory__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxLocalFormFactory */ "./src/editor/NxLocalFormFactory.js");
+
+
+
+
+
+
+
+
+
+
+
+class NxEditInstance {
+  constructor(EditState) {
+    this.EditState = EditState
+
+    this._setContainers()
+    this._setBtnSrc()
+
+    this._setMenu()
+
+    this._setFactories()
+    this._setAddThreadBtn()
+    this._setFormsInputs()
+
+    this._setFormBlocks()
+    this._setServiceElms()
+  }
+
+  getInstanceElms() {
+    return this.instanceElms
+  }
+
+  _setBtnSrc() {
+    this.btnSrc = {
+      up: _shared_NxIcons__WEBPACK_IMPORTED_MODULE_3__.upB64,
+      down: _shared_NxIcons__WEBPACK_IMPORTED_MODULE_3__.downB64,
+    }
+  }
+
+  _setContainers() {
+    this.containers = {
+      author: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('FORM', 'nx-edit-author'),
+      index: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('UL', 'nx-edit-index'),
+      local: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('UL', 'nx-edit-local'),
+      distant: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('UL', 'nx-edit-distant'),
+    }
+  }
+
+  _setMenu() {
+    this.EditMenu = new _NxEditMenu__WEBPACK_IMPORTED_MODULE_6__.NxEditMenu(this.EditState)
+    this.menu = this.EditMenu.getMenuElms()
+    this.menu.addEventListener('StateChange', this._resetFormCallback.bind(this))
+  }
+
+  _setFactories() {
+    this.InputsFactory = new _NxInputsFactory__WEBPACK_IMPORTED_MODULE_8__.NxInputsFactory(this.EditState, this.EditMenu)
+    this.LocalFormFactory = new _NxLocalFormFactory__WEBPACK_IMPORTED_MODULE_9__.NxLocalFormFactory(this.InputsFactory)
+  }
+
+  _setAddThreadBtn() {
+    this.addThreadBtn = (0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.addBtn)()
+    ;(0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(this.addThreadBtn, this.EditState.getIdsList(), 'threads')
+    this.addThreadBtn.addEventListener('click', this._addThreadHandler.bind(this))
+  }
+
+  _setServiceElms() {
+    var indexMain = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV', 'nx-main-block nx-index')
+    indexMain.append(this.formBlocks.author, this.formBlocks.index)
+    var threadMain = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV', 'nx-main-block nx-thread')
+    threadMain.append(this.formBlocks.local, this.formBlocks.distant)
+
+    this.instanceElms = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.instanceWrap)((0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.appHeaderWithLang)(), [
+      (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.serviceWrap)([this.menu], [indexMain, threadMain], [], 'edit'),
+    ])
+  }
+
+  _setFormBlocks() {
+    this.formBlocks = {
+      author: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.blockWrap)('author', [this.containers.author], (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.landmarkElm)('author')),
+      index: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.blockWrap)(
+        'threads-list',
+        [this.containers.index, this.addThreadBtn],
+        (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.landmarkElm)('threads')
+      ),
+      local: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.blockWrap)('local', [this.containers.local], false),
+      distant: (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.blockWrap)('distant', [this.containers.distant], false),
+    }
+  }
+
+  _resetFormCallback() {
+    Object.values(this.containers).forEach((container, i) => {
+      var childr = Array.from(container.childNodes)
+      var isLastp = i === 3
+      var lastc = childr.length - 1
+      childr.forEach((child, c) => {
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vHide)(child, 'fade', 200, function(){
+          child.remove()
+          if (isLastp && c === lastc) {
+            this._setFormsInputs()
+          }
+        }.bind(this))
+      })
+    })
+  }
+
+  _setFormsInputs() {
+    this._setAuthorInputs()
+    this._setThreadsInputs()
+  }
+
+  _setAuthorInputs() {
+    var fields = ['handle', 'url', 'about']
+    fields.forEach((field) => {
+      var inpt = this.InputsFactory.inputElm(['author', field])
+      inpt.style.display = 'none'
+      this.containers.author.append(inpt)
+      ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vShow)(inpt, 'fade', 200)
+    })
+  }
+
+  _setThreadsInputs() {
+    var items = this.EditState.getIdsList()
+    if (items.length) {
+      this.EditMenu.setResetting(true)
+      var isLast = false
+      for (var i = 0; i < items.length; i++) {
+        if (i === items.length - 1) {
+          isLast = true
+        }
+
+        this._setThread(items[i], i, isLast)
+      }
+    }
+  }
+
+  _setThread(id, idx, isLast = false) {
+    var ident = this.EditState.newIdent(id, idx)
+    var elms = this._newThreadLis(ident)
+    var c = 0
+    for (let [name, elm] of Object.entries(elms)) {
+      c++
+      if (elm.style.display !== 'none') {
+        elm.style.display = 'none'
+        var type = 'ease'
+          if (name === 'local') {
+            type = 'fade'
+          } 
+        (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vPlace)(this.containers[name], elm, false, type, 200)
+      } else {
+        this.containers[name].append(elm)
+      }
+     
+      if (isLast && c === 3) {
+        this.EditMenu.setResetting(false)
+        if (idx - 1 !== -1) {
+          this.containers.index.childNodes[idx - 1].dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+        }
+      }
+    }
+  }
+
+  _newThreadLis(ident) {
+    var elms = {}
+
+    elms.distant = this._threadLi(ident)
+    elms.local = this._threadLi(ident)
+    elms.index = this._indexLi(ident)
+
+    elms.distant.append(this._threadDistantForm(ident))
+    elms.local.append(this.LocalFormFactory.newThreadLocalForm(ident, elms.index))
+
+    this._setdeleteThreadElm(elms, ident)
+    return elms
+  }
+
+  _addThreadHandler() {
+    if (!this.addThreadBtn.disabled) {
+      var randomId = (0,_i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__.randomString)(10)
+      var idx = this.EditState.getThreadsCount()
+      this.EditState.pushThread((0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_7__.newThread)(randomId))
+      this.EditMenu.setResetting(true)
+      this._setThread(randomId, idx, true)
+      this.EditMenu.toggleSaveBtn(false)
+      ;(0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(this.addThreadBtn, this.EditState.getIdsList(), 'threads')
+    }
+  }
+
+  _linkInput(addLinkBtn, form, ident, i) {
+    var lkident = this.EditState.registerLinkedThread(ident, i)
+
+    var linkwrap = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV', 'nx-edit-distant-link')
+    var store = { linked: null }
+    var elm = this.InputsFactory.inputElm(['threads', ident, 'linked', lkident], null, store)
+    var dltBtn = this._baseDeleteLinkBtn()
+    var delwrap = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV', 'nx-distant-link-action')
+    delwrap.append(dltBtn)
+
+    dltBtn.addEventListener('click', () => {
+      var act = function (redo) {
+        var linked = this.EditState.getLinkedUrls(ident)
+        if (redo) {
+          (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vHide)(linkwrap, 'ease', 200, function () {
+            linkwrap.remove()
+          })
+          this.EditState.removeLinkedThread(ident, lkident)
+        } else {
+          var lidx = this.EditState.getLinkedThreadIdx(ident, lkident)
+          var isLast = lidx === linked.length
+          this.EditState.insertLinkedThread(ident, lkident, store.linked.value)
+          if (isLast) {
+            (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vPlace)(form, linkwrap, false, 'ease', 200)
+          } else {
+            var nextSibling = form.childNodes[lidx]
+            form.insertBefore(linkwrap, nextSibling)
+            ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vShow)(linkwrap, 'ease', 200)
+          }
+        }
+        (0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(addLinkBtn, linked, 'linked')
+      }.bind(this)
+      this.EditMenu.setLastAction(act)
+      act(true)
+    })
+    linkwrap.append(elm, delwrap)
+    return linkwrap
+  }
+
+  _threadDistantForm(ident) {
+    var form = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('FORM', 'nx-thread-distant-form')
+    var addLinkBtn = (0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.addBtn)()
+    ;(0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(addLinkBtn, this.EditState.getLinkedUrls(ident), 'linked')
+    addLinkBtn.addEventListener('click', () => {
+      if (!addLinkBtn.disabled) {
+        this.EditState.pushLinkedThread(ident, '')
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vPlace)(form, this._linkInput(addLinkBtn, form, ident, this.EditState.getLinkedUrlsCount(ident) - 1),false, 'ease', 200)
+        ;(0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(addLinkBtn, this.EditState.getLinkedUrls(ident), 'linked')
+      }
+    })
+    var linkedCount = this.EditState.getLinkedUrlsCount(ident)
+    if (linkedCount) {
+      var elms = []
+      for (var i = 0; i < linkedCount; i++) {
+        var elm = this._linkInput(addLinkBtn, form, ident, i)
+        elms.push(elm)
+      }
+      form.append(...elms)
+    }
+
+    var formCnt = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV')
+    formCnt.append((0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.landmarkElm)('linked threads'), form, addLinkBtn)
+
+    return formCnt
+  }
+
+  _threadLi(ident) {
+    var li = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('LI')
+
+    if (!this.EditState.isCurrentId(ident)) {
+      li.style.display = 'none'
+    }
+    li.addEventListener(
+      'ThreadChange',
+      function () {
+        if (this.EditState.isCurrentId(ident)) {
+          setTimeout(function () {
+            (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vShow)(li, 'ease', 200)
+          }, 200)
+        } else {
+          (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vHide)(li, 'ease', 200)
+        }
+      }.bind(this)
+    )
+    return li
+  }
+
+  _setdeleteThreadElm(elms, ident) {
+    var btn = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('BUTTON', 'nx-delete-thread')
+    btn.type = 'button'
+    btn.textContent = '-'
+
+    btn.addEventListener(
+      'click',
+      function () {
+        this._deleteEvent(elms, ident)
+      }.bind(this)
+    )
+    elms.index.append(btn)
+  }
+
+  _deleteEvent(elms, ident) {
+    var threadData = Object.assign({}, this.EditState.getThreadData(ident))
+    var act = function (redo) {
+      var idx = this.EditState.getThreadIdx(ident)
+      var len = this.EditState.getThreadsCount()
+
+      if (redo) {
+        this.EditState.removeThread(ident)
+
+        Object.values(elms).forEach((elm) => {
+          ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vHide)(elm, 'ease', 200, function () {
+            elm.remove()
+          })
+        })
+
+        if (len > 1) {
+          if (idx === 0) {
+            elms.index.nextSibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+          } else if (idx === len - 1) {
+            elms.index.previousSibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+          }
+        }
+
+        if (this.EditState.isCurrentId(ident)) {
+          elms.distant.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.threadChangeEvt)
+          elms.local.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.threadChangeEvt)
+        }
+      } else {
+        this.EditState.insertThread(ident, threadData)
+        if (idx <= len - 1) {
+          var next = this.containers.index.childNodes[idx]
+          this.containers.index.insertBefore(elms.index, next)
+          if (idx === 0) {
+            next.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+          }
+        } else {
+          this.containers.index.append(elms.index)
+          if (len > 1) {
+            elms.index.previousSibling.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+          }
+        }
+
+        this.containers.local.append(elms.local)
+        this.containers.distant.append(elms.distant)
+
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_1__.vShow)(elms.index, 'ease', 200)
+        elms.index.firstChild.click()
+      }
+      (0,_NxAddBtn__WEBPACK_IMPORTED_MODULE_4__.toggleAddBtn)(this.addThreadBtn, this.EditState.getIdsList(), 'threads')
+    }.bind(this)
+    this.EditMenu.setLastAction(act)
+    act(true)
+  }
+
+  _indexLi(ident) {
+    var elm = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('LI')
+    elm.dataset.ident = ident
+    elm.append(this._indexLink(ident))
+    this._setMoveBtns(elm, ident)
+    return elm
+  }
+
+  _indexLink(ident) {
+    var itemState = this.EditState.getAltEditState(ident)
+    var indLk = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.baseViewLink)(itemState, false)
+    if (this.EditState.isCurrentId(ident)) {
+      indLk.classList.add('nx-on-display')
+    }
+
+    indLk.addEventListener('click', () => {
+      if (!this.EditState.isCurrentId(ident)) {
+        this.EditState.changeCurrentThread(ident)
+        var prev = this.containers.index.querySelector('.nx-on-display')
+        if (prev) {
+          prev.classList.remove('nx-on-display')
+        }
+        indLk.classList.add('nx-on-display')
+        this.containers.local.childNodes.forEach((lchild) => {
+          lchild.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.threadChangeEvt)
+        })
+        this.containers.distant.childNodes.forEach((dchild) => {
+          dchild.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.threadChangeEvt)
+        })
+      }
+    })
+
+    return indLk
+  }
+
+  _toggleActiveBtn(ident, btn) {
+    if (this.EditState.isFirstThread(ident)) {
+      (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.toggleDisabled)(btn['up'], true)
+    } else {
+      (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.toggleDisabled)(btn['up'], false)
+    }
+    if (this.EditState.isLastThread(ident)) {
+      (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.toggleDisabled)(btn['down'], true)
+    } else {
+      (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.toggleDisabled)(btn['down'], false)
+    }
+  }
+
+  _permuteThread(goingUp, goingDown) {
+    this.containers.index.removeChild(goingUp)
+    this.containers.index.insertBefore(goingUp, goingDown)
+    goingDown.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+    goingUp.dispatchEvent(_NxEditCommons__WEBPACK_IMPORTED_MODULE_5__.updownEvt)
+  }
+
+  _moveItemHandler(li, it, ident) {
+    var act = function (redo) {
+      var isUp = it == 'up'
+      if (!redo) {
+        isUp = !isUp
+      }
+      var sibling
+      if (isUp && !this.EditState.isFirstThread(ident)) {
+        sibling = li.previousSibling
+        this.EditState.moveThread(ident, sibling.dataset.ident, true)
+        this._permuteThread(li, sibling)
+      } else if (!isUp && !this.EditState.isLastThread(ident)) {
+        sibling = li.nextSibling
+        this.EditState.moveThread(ident, sibling.dataset.ident, false)
+        this._permuteThread(sibling, li)
+      }
+    }.bind(this)
+
+    this.EditMenu.setLastAction(act)
+    act(true)
+  }
+
+  _setMoveBtns(li, ident) {
+    var dv = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('DIV', 'nx-edit-move')
+    var btn = {
+      up: null,
+      down: null,
+    }
+    li.addEventListener(
+      'IndexChange',
+      function () {
+        this._toggleActiveBtn(ident, btn)
+      }.bind(this)
+    )
+    Object.keys(btn).forEach((it) => {
+      btn[it] = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('A', 'nx-edit-move-' + it)
+      btn[it].append((0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.iconImage)(this.btnSrc[it], 16))
+      dv.append(btn[it])
+
+      btn[it].addEventListener(
+        'click',
+        function () {
+          this._moveItemHandler(li, it, ident)
+        }.bind(this)
+      )
+    })
+    this._toggleActiveBtn(ident, btn)
+    li.append(dv)
+  }
+
+  _baseDeleteLinkBtn() {
+    var btn = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_2__.getElm)('BUTTON', 'nx-delete-link')
+    btn.type = 'button'
+    btn.textContent = '-'
+    return btn
   }
 }
 
@@ -1081,12 +625,7 @@ function toggleAddBtn(btn, haystack, itemsKey) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "setEditMenu": () => (/* binding */ setEditMenu),
-/* harmony export */   "displayFeedback": () => (/* binding */ displayFeedback),
-/* harmony export */   "toggleSaveBtn": () => (/* binding */ toggleSaveBtn),
-/* harmony export */   "setLastAction": () => (/* binding */ setLastAction),
-/* harmony export */   "setResetting": () => (/* binding */ setResetting),
-/* harmony export */   "getEditMenu": () => (/* binding */ getEditMenu)
+/* harmony export */   "NxEditMenu": () => (/* binding */ NxEditMenu)
 /* harmony export */ });
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/load/NxSrc */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_logs_NxLog__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/logs/NxLog */ "./node_modules/@i-is-as-i-does/nexus-core/src/logs/NxLog.js");
@@ -1094,11 +633,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxStamper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxStamper */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxStamper.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
 /* harmony import */ var _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/NxIcons.js */ "./src/shared/NxIcons.js");
-/* harmony import */ var _NxEdit_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./NxEdit.js */ "./src/editor/NxEdit.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js");
-/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
-/* harmony import */ var _NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxEditPrc.js */ "./src/editor/NxEditPrc.js");
-/* harmony import */ var _NxEditStarters_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./NxEditStarters.js */ "./src/editor/NxEditStarters.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/transitions.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/transitions.js");
+/* harmony import */ var _NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NxEditCommons.js */ "./src/editor/NxEditCommons.js");
+/* harmony import */ var _NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./NxEditStarters.js */ "./src/editor/NxEditStarters.js");
 
 
 
@@ -1110,307 +648,231 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-var actionFdbck
-var feedbackrun
-
-var saveBtn
-var resetBtn
-var editMenu
-
-var actCtrls = {
-  ctrls: {
-    prev: { symbol: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.undoB64, elm: null },
-    next: { symbol: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.redoB64, elm: null },
-  },
-  position: 0,
-  count: 1,
-}
-
-var resetting = false
-var lastAction
-
-function setActionFeedback() {
-  actionFdbck = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("SPAN", "nx-action-feedback")
-}
-
-function downloadBtn() {
-  var dlBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A", "nx-download")
-  dlBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.downloadB64, 20))
-  dlBtn.addEventListener("click", function () {
-    var data = Object.assign({}, (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getEditState)().srcData)
-    delete data.index
-    var check = (0,_i_is_as_i_does_nexus_core_src_validt_NxStamper__WEBPACK_IMPORTED_MODULE_3__.validData)(data)
-    if (!check) {
-      displayFeedback("Invalid Nexus data")
-    }
-    data = JSON.stringify(data, undefined, 2)
-    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(data)
-    var anchor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A")
-    anchor.setAttribute("href", dataStr)
-    anchor.setAttribute("download", "nexus.json")
-    ;(0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getHostElm)().appendChild(anchor)
-    anchor.click()
-    anchor.remove()
-  })
-  return dlBtn
-}
-
-function newDocumenBtn() {
-  var newBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A", "nx-new")
-  newBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.newB64, 20))
-  newBtn.addEventListener("click", function () {
-    ;(0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.resetData)((0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_10__.newData)())
-  })
-  return newBtn
-}
-
-function openBtn() {
-  var inp = fileInput()
-  var btn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A", "nx-open-file")
-  btn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.openB64, 20))
-  btn.addEventListener("click", function () {
-    inp.click()
-  })
-  var wrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("SPAN")
-  wrap.append(inp, btn)
-  return wrap
-}
-
-function fileInput() {
-  var inp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("INPUT")
-  inp.type = "file"
-  inp.accept = "application/json"
-  inp.addEventListener("change", function (evt) {
-    ;(0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.loadSrcFile)(evt, true)
-      .then((fdata) => {
-        fdata.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.getThreadsList)(fdata)
-        ;(0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.resetData)(fdata)
-      })
-      .catch((err) => {
-        (0,_i_is_as_i_does_nexus_core_src_logs_NxLog__WEBPACK_IMPORTED_MODULE_1__.logErr)(err.message)
-        displayFeedback("Invalid source")
-      })
-    inp.value = ""
-  })
-  inp.style.display = "none"
-  return inp
-}
-
-function setSaveBtn() {
-  saveBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A", "nx-save")
-  saveBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.saveB64, 20))
-  ;(0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(saveBtn, true)
-  saveBtn.addEventListener("click", function () {
-    if (!saveBtn.classList.contains("nx-disabled")) {
-      var editState = (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getEditState)()
-      ;(0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_2__.registerEditData)(editState.dataUrl, editState.srcData)
-      displayFeedback("saved")
-      ;(0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(saveBtn, true)
-      setResetStatus()
-    }
-  })
-}
-
-function setResetStatus() {
-  if ((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getOriginData)() !== JSON.stringify((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getEditState)().srcData)) {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(resetBtn, false)
-  } else {
-    (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(resetBtn, true)
+class NxEditMenu {
+  constructor(EditState) {
+    this.EditState = EditState
+    this._setMenu()
   }
-}
 
-function setResetBtn() {
-  resetBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("A", "nx-reset")
-  resetBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.resetB64, 20))
-
-  setResetStatus()
-  resetBtn.addEventListener("click", function () {
-    if (!resetBtn.classList.contains("nx-disabled")) {
-      (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.resetData)(JSON.parse((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_6__.getOriginData)()))
-      ;(0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(resetBtn, true)
-    }
-  })
-}
-
-function editNav() {
-  var wrp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("DIV", "nx-edit-nav")
-  setActionFeedback()
-  setResetBtn()
-  setSaveBtn()
-
-  var links = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("DIV")
-
-  links.append(resetBtn, newDocumenBtn(), openBtn(), saveBtn, downloadBtn())
-  wrp.append(actionFdbck, links)
-  return wrp
-}
-
-function triggerUndoRedo(ctrl) {
-  lastAction(ctrl === "next")
-  toggleSaveBtn(false)
-}
-
-function editActions() {
-  var wrp = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("DIV", "nx-edit-actions nx-history-nav")
-  ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.setHistoryControls)(actCtrls, triggerUndoRedo, true)
-  wrp.append(actCtrls.ctrls["prev"].elm, actCtrls.ctrls["next"].elm)
-  return wrp
-}
-
-function setEditMenu() {
-  editMenu = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)("DIV", "nx-edit-menu")
-  editMenu.append(editNav(), editActions())
-}
-
-function displayFeedback(msg) {
-  var txt = (0,_i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_7__.getTxt)(msg)
-  if (feedbackrun) {
-    clearTimeout(feedbackrun)
+  getMenuElms() {
+    return this.menu
   }
-  (0,_i_is_as_i_does_valva_src_modules_aliases__WEBPACK_IMPORTED_MODULE_8__.splitFlap)(actionFdbck, txt, 25)
-  feedbackrun = setTimeout(function () {
-    ;(0,_i_is_as_i_does_valva_src_modules_aliases__WEBPACK_IMPORTED_MODULE_8__.splitFlap)(actionFdbck, "", 25)
-  }, 1500 + txt.length * 20)
-}
 
-function toggleSaveBtn(disabled = false) {
-  (0,_NxEditPrc_js__WEBPACK_IMPORTED_MODULE_9__.toggleBtn)(saveBtn, disabled)
-}
-
-function setLastAction(callback, bypass = false) {
-  if (!resetting || bypass) {
-    lastAction = callback
-    actCtrls.count = 2
-    actCtrls.position = 1
-    ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.toggleNavEnd)(actCtrls)
-    toggleSaveBtn(false)
-  }
-}
-
-function setResetting(bool) {
-  resetting = bool
-}
-
-function getEditMenu() {
-  return editMenu
-}
-
-
-/***/ }),
-
-/***/ "./src/editor/NxEditPrc.js":
-/*!*********************************!*\
-  !*** ./src/editor/NxEditPrc.js ***!
-  \*********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "resolveMediaType": () => (/* binding */ resolveMediaType),
-/* harmony export */   "convertToId": () => (/* binding */ convertToId),
-/* harmony export */   "newState": () => (/* binding */ newState),
-/* harmony export */   "toggleBtn": () => (/* binding */ toggleBtn),
-/* harmony export */   "isUnique": () => (/* binding */ isUnique),
-/* harmony export */   "uniqueId": () => (/* binding */ uniqueId),
-/* harmony export */   "setFeedbackIcon": () => (/* binding */ setFeedbackIcon)
-/* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help.js */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
-/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
-/* harmony import */ var _shared_NxIcons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/NxIcons */ "./src/shared/NxIcons.js");
-/* harmony import */ var _NxEdit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NxEdit */ "./src/editor/NxEdit.js");
-
-
-
-
-
-const guessMap = {
-  image: ["jpg", "jpeg", "gif", "svg", "png", "webp"],
-  video: ["mp4", "webm"],
-  audio: ["mp3"],
-}
-
-function resolveMediaType(val) {
-  for (var p = 0; p < _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia.length; p++) {
-    if (val.includes(_i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia[p])) {
-      return _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_1__.supportedOembedMedia[p]
+  setLastAction(callback, bypass = false) {
+    if (!this.resetting || bypass) {
+      this.lastAction.act = callback
+      this.actCtrls.count = 2
+      this.actCtrls.position = 1
+      ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.toggleNavEnd)(this.actCtrls)
+      this.toggleSaveBtn(false)
     }
   }
-  var ext = val.split(".").pop()
-  for (let [type, exts] of Object.entries(guessMap)) {
-    if (exts.includes(ext)) {
-      return type
+  setResetting(bool) {
+    this.resetting = bool
+  }
+
+  toggleSaveBtn(disabled = false) {
+    (0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, disabled)
+  }
+  _displayFeedback(msg) {
+    var txt = (0,_i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_6__.getTxt)(msg)
+    if (this.feedbackrun) {
+      clearTimeout(this.feedbackrun)
     }
+    (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_7__.vSplitFlap)(this.actionFdbck, txt, 25)
+    this.feedbackrun = setTimeout(
+      function () {
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_7__.vSplitFlap)(this.actionFdbck, '', 25)
+      }.bind(this),
+      1500 + txt.length * 20
+    )
   }
 
-  return "page"
-}
+  _resetData(data) {
+    var prvState = this.EditState.getJsonState()
+    if (data === null) {
+      data = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newData)()
+    }
 
-function convertToId(title) {
-  return (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.replaceDiacritics)(title)
-    .trim()
-    .replace(/[^A-Za-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "")
-}
-
-function newState(data, url = "nexus-tmp", id = "/", idx = -1) {
-  return {
-    dataUrl: url,
-    srcData: data,
-    threadId: id,
-    threadIndex: idx,
-  }
-}
-
-function toggleBtn(btn, disabled = false) {
-  var hasDisbClass = btn.classList.contains("nx-disabled")
-  if (!disabled && hasDisbClass) {
-    btn.classList.remove("nx-disabled")
-  } else if (disabled && !hasDisbClass) {
-    btn.classList.add("nx-disabled")
-  }
-}
-
-function isUnique(haystack, needle, excludeIdx) {
-  if (haystack.indexOf(needle) !== -1) {
-    for (var c = 0; c < haystack.length; c++) {
-      if (c !== excludeIdx && haystack[c] === needle) {
-        return false
+    var state = (0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newState)(data)
+    if (state.srcData.threads.length) {
+      state.threadIndex = 0
+      state.threadId = state.srcData.threads[0].id
+    }
+    var nxtState = JSON.stringify(state)
+    var act = function (redo) {
+      var nstate
+      if (redo) {
+        nstate = nxtState
+      } else {
+        nstate = prvState
       }
-    }
+      this.EditState.setNewState(nstate)
+      this.menu.dispatchEvent(_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.stateChangeEvt)
+    }.bind(this)
+    act(true)
+    this.setLastAction(act, true)
   }
-  return true
-}
 
-function uniqueId(id, idx) {
-  id = convertToId(id)
-  var editState = (0,_NxEdit__WEBPACK_IMPORTED_MODULE_3__.getEditState)()
-  if (!isUnique(editState.srcData.index, id, idx)) {
-    var sp = id.split("-")
-    var last = sp.pop()
-    var incr
-    if (!isNaN(last)) {
-      incr = parseInt(last)
-      incr++
-    } else {
-      sp.push(last)
-      incr = 1
-    }
-    id = sp.join("-")
-    while (editState.srcData.index.includes(id + "-" + incr)) {
-      incr++
-    }
-    id += "-" + incr
+  _setActionFeedback() {
+    this.feedbackrun = null
+    this.actionFdbck = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('SPAN', 'nx-action-feedback')
   }
-  return id
-}
 
-function setFeedbackIcon(fdbck, valid) {
-  var icsrc = _shared_NxIcons__WEBPACK_IMPORTED_MODULE_2__.invalidB64
-  if (valid) {
-    icsrc = _shared_NxIcons__WEBPACK_IMPORTED_MODULE_2__.validB64
+  _setDownloadBtn() {
+    this.dlBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-download')
+    this.dlBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.downloadB64, 20))
+    this.dlBtn.addEventListener(
+      'click',
+      function () {
+        var data = Object.assign({}, this.EditState.state.srcData)
+        delete data.index
+        var check = (0,_i_is_as_i_does_nexus_core_src_validt_NxStamper__WEBPACK_IMPORTED_MODULE_3__.validData)(data)
+        if (!check) {
+          this._displayFeedback('Invalid Nexus data')
+        }
+        data = JSON.stringify(data, undefined, 2)
+        var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(data)
+        var anchor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A')
+        anchor.setAttribute('href', dataStr)
+        anchor.setAttribute('download', 'nexus.json')
+        document.body.appendChild(anchor)
+        anchor.click()
+        anchor.remove()
+      }.bind(this)
+    )
   }
-  fdbck.firstChild.src = icsrc
+
+  _setNewDocumenBtn() {
+    this.newBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-new')
+    this.newBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.newB64, 20))
+    this.newBtn.addEventListener(
+      'click',
+      function () {
+        this._resetData((0,_NxEditStarters_js__WEBPACK_IMPORTED_MODULE_9__.newData)())
+      }.bind(this)
+    )
+  }
+
+  _setOpenBtn() {
+    this._setFileInput()
+    this.openBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-open-file')
+    this.openBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.openB64, 20))
+    this.openBtn.addEventListener(
+      'click',
+      function () {
+        this.fileInput.click()
+      }.bind(this)
+    )
+    this.openWrap = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('SPAN')
+    this.openWrap.append(this.fileInput, this.openBtn)
+  }
+
+  _setFileInput() {
+    this.fileInput = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('INPUT')
+    this.fileInput.type = 'file'
+    this.fileInput.accept = 'application/json'
+    this.fileInput.addEventListener(
+      'change',
+      function (evt) {
+        ;(0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.loadSrcFile)(evt, true)
+          .then((fdata) => {
+            fdata.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.getThreadsList)(fdata)
+            this._resetData(fdata)
+          })
+          .catch((err) => {
+            (0,_i_is_as_i_does_nexus_core_src_logs_NxLog__WEBPACK_IMPORTED_MODULE_1__.logErr)(err.message)
+            this._displayFeedback('Invalid source')
+          })
+        this.fileInput.value = ''
+      }.bind(this)
+    )
+    this.fileInput.style.display = 'none'
+  }
+
+  _setSaveBtn() {
+    this.saveBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-save')
+    this.saveBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.saveB64, 20))
+    ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, true)
+    this.saveBtn.addEventListener(
+      'click',
+      function () {
+        if (!this.saveBtn.classList.contains('nx-disabled')) {
+          var editState = this.EditState.state
+          ;(0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_2__.registerEditData)(editState.dataUrl, editState.srcData)
+          this._displayFeedback('saved')
+          ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.saveBtn, true)
+          this._setResetStatus()
+        }
+      }.bind(this)
+    )
+  }
+
+  _setResetStatus() {
+    var disb = true
+    if (this.EditState.originData !== JSON.stringify(this.EditState.state.srcData)) {
+      disb = false
+    }
+    (0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.resetBtn, disb)
+  }
+
+  _setResetBtn() {
+    this.resetBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('A', 'nx-reset')
+    this.resetBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.resetB64, 20))
+
+    this._setResetStatus()
+    this.resetBtn.addEventListener(
+      'click',
+      function () {
+        if (!this.resetBtn.classList.contains('nx-disabled')) {
+          this._resetData(JSON.parse(this.EditState.originData))
+          ;(0,_NxEditCommons_js__WEBPACK_IMPORTED_MODULE_8__.toggleDisabled)(this.resetBtn, true)
+        }
+      }.bind(this)
+    )
+  }
+
+  _setEditNav() {
+    this._setActionFeedback()
+    this._setResetBtn()
+    this._setNewDocumenBtn()
+    this._setOpenBtn()
+    this._setSaveBtn()
+    this._setDownloadBtn()
+
+    this.editLinks = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('DIV')
+    this.editLinks.append(this.resetBtn, this.newBtn, this.openWrap, this.saveBtn, this.dlBtn)
+    this.editNav = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('DIV', 'nx-edit-nav')
+    this.editNav.append(this.actionFdbck, this.editLinks)
+  }
+
+  _setEditActions() {
+    this.resetting = false
+    this.lastAction = { act: null }
+    this.actCtrls = {
+      ctrls: {
+        prev: { symbol: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.undoB64, elm: null },
+        next: { symbol: _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_5__.redoB64, elm: null },
+      },
+      position: 0,
+      count: 1,
+    }
+    this.editActions = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('DIV', 'nx-edit-actions nx-history-nav')
+    ;(0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.setHistoryControls)(this.actCtrls, this._triggerUndoRedo.bind(this), true)
+    this.editActions.append(this.actCtrls.ctrls['prev'].elm, this.actCtrls.ctrls['next'].elm)
+  }
+
+  _triggerUndoRedo(ctrl) {
+    this.lastAction.act(ctrl === 'next')
+    this.toggleSaveBtn(false)
+  }
+
+  _setMenu() {
+    this._setEditNav()
+    this._setEditActions()
+    this.menu = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_4__.getElm)('DIV', 'nx-edit-menu')
+    this.menu.append(this.editNav, this.editActions)
+  }
 }
 
 
@@ -1424,6 +886,7 @@ function setFeedbackIcon(fdbck, valid) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "newState": () => (/* binding */ newState),
 /* harmony export */   "newData": () => (/* binding */ newData),
 /* harmony export */   "newThread": () => (/* binding */ newThread)
 /* harmony export */ });
@@ -1432,14 +895,23 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+function newState(data, url = 'nexus-tmp', id = '/', idx = -1) {
+  return {
+    dataUrl: url,
+    srcData: data,
+    threadId: id,
+    threadIndex: idx,
+  }
+}
+
 function newData() {
   var randomId = (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.randomString)(10)
   return {
     nexus: _i_is_as_i_does_nexus_core_src_validt_NxSpecs_js__WEBPACK_IMPORTED_MODULE_1__.appUrl,
     author: {
-      handle: "Anonymous-" + (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.randomInt)(100, 999),
-      about: "",
-      url: "http://",
+      handle: 'Anonymous-' + (0,_i_is_as_i_does_jack_js_src_modules_Help_js__WEBPACK_IMPORTED_MODULE_0__.randomInt)(100, 999),
+      about: '',
+      url: 'http://',
     },
     threads: [newThread(randomId)],
     index: [randomId],
@@ -1450,18 +922,422 @@ function newThread(randomId) {
   return {
     id: randomId,
     title: randomId,
-    description: "...",
+    description: '...',
     content: {
       timestamp: new Date().toISOString().substring(0, 16),
-      main: "...",
-      aside: "",
+      main: '...',
+      aside: '',
       media: {
-        url: "",
-        type: "",
-        caption: "",
+        url: '',
+        type: '',
+        caption: '',
       },
     },
     linked: [],
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/editor/NxEditState.js":
+/*!***********************************!*\
+  !*** ./src/editor/NxEditState.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NxEditState": () => (/* binding */ NxEditState)
+/* harmony export */ });
+/* harmony import */ var _i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/jack-js/src/modules/Help */ "./node_modules/@i-is-as-i-does/jack-js/src/modules/Help.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/base/NxHost */ "./node_modules/@i-is-as-i-does/nexus-core/src/base/NxHost.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/load/NxSrc */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/storg/NxMemory */ "./node_modules/@i-is-as-i-does/nexus-core/src/storg/NxMemory.js");
+/* harmony import */ var _shared_NxState__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxState */ "./src/shared/NxState.js");
+/* harmony import */ var _NxEditStarters__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./NxEditStarters */ "./src/editor/NxEditStarters.js");
+
+
+
+
+
+
+
+class NxEditState {
+  constructor(state) {
+    var url = 'nexus-tmp'
+    var data = null
+
+    if ((0,_i_is_as_i_does_nexus_core_src_base_NxHost__WEBPACK_IMPORTED_MODULE_1__.getQuery)('new')) {
+      data = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newData)()
+      state = null
+    } else {
+      if (state.dataUrl) {
+        url = state.dataUrl
+      }
+      data = (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.getStoredEditData)(url)
+      if (data === null) {
+        if (state.srcData !== null) {
+          data = state.srcData
+        } else {
+          data = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newData)()
+        }
+        (0,_i_is_as_i_does_nexus_core_src_storg_NxMemory__WEBPACK_IMPORTED_MODULE_3__.registerEditData)(url, data)
+      }
+    }
+
+    if (!data.index) {
+      data.index = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_2__.getThreadsList)(data)
+    }
+
+    var origin = data
+    if (state !== null && state.srcData !== null) {
+      origin = state.srcData
+    }
+    this.originData = JSON.stringify(origin)
+
+    var id = data.threads[0].id
+    var idx = 0
+
+    if (state && state.threadId !== '/' && data.index.includes(state.threadId)) {
+      id = state.threadId
+      idx = data.index.indexOf(state.threadId)
+    }
+
+    this.state = (0,_NxEditStarters__WEBPACK_IMPORTED_MODULE_5__.newState)(data, url, id, idx)
+    this.threadsMap = {} // @doc originIdx: { id: currentId, idx: currentIdx, linked :{}}
+  }
+
+  /* whole state methods */
+
+  getState() {
+    return this.state
+  }
+
+  getOriginData() {
+    return this.originData
+  }
+
+  getJsonState() {
+    return JSON.stringify(this.state)
+  }
+
+  getAltEditState(ident) {
+    return (0,_shared_NxState__WEBPACK_IMPORTED_MODULE_4__.getAltState)(this.state, this.getThreadId(ident), this.getThreadIdx(ident))
+  }
+
+  setNewState(jsonState) {
+    this.state = Object.assign({}, JSON.parse(jsonState))
+  }
+
+  /* form methods */
+
+  setAuthorValue(ref, value) {
+    if (!this.state.srcData.author) {
+      this.state.srcData.author = {}
+    }
+    this.state.srcData.author[ref[1]] = value
+  }
+
+  setThreadIndex(ident) {
+    if (!this.state.srcData.threads) {
+      this.state.srcData.threads = []
+    } else {
+      var idx = this.getThreadIdx(ident)
+      if (typeof this.state.srcData.threads[idx] === 'undefined') {
+        this.state.srcData.threads[idx] = {}
+      }
+    }
+  }
+
+  setThreadId(ref, value) {
+    this.threadsMap[ref[1]].id = value
+    var idx = this.getThreadIdx(ref[1])
+    this.state.srcData.index[idx] = value
+    this.state.srcData.threads[idx].id = value
+  }
+
+  setThreadInfo(ref, value) {
+    var idx = this.getThreadIdx(ref[1])
+    this.state.srcData.threads[idx][ref[2]] = value
+  }
+
+  setContentValue(ref, value) {
+    var idx = this.getThreadIdx(ref[1])
+    if (!this.state.srcData.threads[idx].content) {
+      this.state.srcData.threads[idx].content = {}
+    }
+    if (ref[3] !== 'media') {
+      this.state.srcData.threads[idx].content[ref[3]] = value
+      return
+    }
+    if (!this.state.srcData.threads[idx].content.media) {
+      this.state.srcData.threads[idx].content.media = {}
+    }
+    this.state.srcData.threads[idx].content.media[ref[4]] = value
+  }
+
+  setLinkedValue(ref, value) {
+    var idx = this.getThreadIdx(ref[1])
+    if (!this.state.srcData.threads[idx].linked) {
+      this.state.srcData.threads[idx].linked = [value]
+    } else {
+      var lidx = this.getLinkedThreadIdx(ref[1], ref[3])
+      this.state.srcData.threads[idx].linked[lidx] = value
+    }
+  }
+
+  setNewValue(ref, value) {
+    if (this.state.srcData === null) {
+      this.state.srcData = {}
+      this.state.srcData.index = []
+    }
+    if (ref[0] === 'author') {
+      return this.setAuthorValue(ref, value)
+    }
+    this.setThreadIndex(ref[1])
+
+    if (ref[2] === 'id') {
+      return this.setThreadId(ref, value)
+    }
+    if (!['linked', 'content'].includes(ref[2])) {
+      return this.setThreadInfo(ref, value)
+    }
+
+    if (ref[2] === 'content') {
+      return this.setContentValue(ref, value)
+    }
+    this.setLinkedValue(ref, value)
+  }
+
+  getValue(ref) {
+    if (this.state.srcData) {
+      if (ref[0] === 'author') {
+        return this.state.srcData.author[ref[1]]
+      }
+      var idx = this.getThreadIdx(ref[1])
+      if (!['linked', 'content'].includes(ref[2])) {
+        return this.state.srcData.threads[idx][ref[2]]
+      }
+      if (ref[2] === 'content') {
+        if (ref[3] !== 'media') {
+          return this.state.srcData.threads[idx].content[ref[3]]
+        }
+        return this.state.srcData.threads[idx].content.media[ref[4]]
+      }
+      var lidx = this.getLinkedThreadIdx(ref[1], ref[3])
+      return this.state.srcData.threads[idx].linked[lidx]
+    }
+    return ''
+  }
+
+  /* state infos methods */
+
+  getThreadId(ident) {
+    return this.threadsMap[ident].id
+  }
+
+  getThreadIdx(ident) {
+    var idx = this.threadsMap[ident].idx
+    var count = this.getThreadsCount()
+    if (idx >= count) {
+      idx = count - 1
+      this.threadsMap[ident].idx = idx
+      if (this.isCurrentId(ident)) {
+        this.state.threadIndex = idx
+      }
+    }
+    return idx
+  }
+
+  getIdsList() {
+    return this.state.srcData.index
+  }
+
+  getThreadsCount() {
+    return this.state.srcData.index.length
+  }
+
+  getCurrentThreadId() {
+    return this.state.threadId
+  }
+
+  getCurrentThreadIdx() {
+    return this.state.threadIndex
+  }
+
+  isCurrentId(ident) {
+    return this.threadsMap[ident].id === this.state.threadId
+  }
+
+  /* specific thread methods */
+
+  unsetCurrentThread() {
+    this.state.threadId = '/'
+    this.state.threadIndex = -1
+  }
+
+  isFirstThread(ident) {
+    return this.getThreadIdx(ident) === 0
+  }
+
+  isLastThread(ident) {
+    return this.getThreadIdx(ident) + 1 === this.getThreadsCount()
+  }
+
+  getThreadData(ident) {
+    var idx = this.getThreadIdx(ident)
+    var threadData = this.state.srcData.threads[idx]
+    if (!threadData) {
+      this.state.srcData.threads[idx] = {}
+    }
+    return threadData
+  }
+
+  removeThread(ident) {
+    var idx = this.getThreadIdx(ident)
+    this.state.srcData.index.splice(idx, 1)
+    this.state.srcData.threads.splice(idx, 1)
+
+    if (!this.isLastThread(ident)) {
+      for (let [k, v] of Object.entries(this.threadsMap)) {
+        if (v.idx > idx) {
+          this.threadsMap[k].idx = v.idx - 1
+        }
+      }
+    }
+
+    if (this.isCurrentId(ident)) {
+      this.unsetCurrentThread()
+    } else if (this.state.threadIndex > idx) {
+      this.state.threadIndex--
+    }
+  }
+
+  insertThread(ident, threadData) {
+    if (this.isLastThread(ident)) {
+      this.pushThread(threadData)
+    } else {
+      var idx = this.getThreadIdx(ident)
+      this.state.srcData.index.splice(idx, 0, threadData.id)
+      this.state.srcData.threads.splice(idx, 0, threadData)
+      for (let [k, v] of Object.entries(this.threadsMap)) {
+        if (v.id !== threadData.id && v.idx >= idx) {
+          this.threadsMap[k].idx = v.idx + 1
+        }
+      }
+      if (this.state.threadIndex >= idx) {
+        this.state.threadIndex++
+      }
+    }
+  }
+
+  newIdent(id, idx) {
+    var ident = (0,_i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__.randomString)(21)
+    this.threadsMap[ident] = { id: id, idx: idx, linked: {} }
+    return ident
+  }
+
+  changeCurrentThread(ident) {
+    this.state.threadId = this.getThreadId(ident)
+    this.state.threadIndex = this.getThreadIdx(ident)
+  }
+
+  moveThread(ident, siblingIdent, up = false) {
+    var from = this.getThreadIdx(ident)
+    var to = from + 1
+    if (up) {
+      to = from - 1
+    }
+    this.state.srcData.index.splice(to, 0, this.state.srcData.index.splice(from, 1)[0])
+    this.state.srcData.threads.splice(to, 0, this.state.srcData.threads.splice(from, 1)[0])
+    this.threadsMap[ident].idx = to
+    this.threadsMap[siblingIdent].idx = from
+
+    if (this.isCurrentId(ident)) {
+      this.state.threadIndex = to
+    } else if (this.isCurrentId(siblingIdent)) {
+      this.state.threadIndex = from
+    }
+  }
+
+  pushThread(threadData) {
+    this.state.srcData.threads.push(threadData)
+    this.state.srcData.index.push(threadData.id)
+  }
+
+  /* linked threads methods */
+
+  getLinkedThreadIdx(ident, lkident) {
+    var idx = this.threadsMap[ident].linked[lkident].idx
+    var count = this.getLinkedUrlsCount(ident)
+    if (idx >= count) {
+      idx = count - 1
+      this.threadsMap[ident].linked[lkident].idx = idx
+    }
+    return idx
+  }
+
+  getLinkedUrls(ident) {
+    var threadData = this.getThreadData(ident)
+    if (!Object.prototype.hasOwnProperty.call(threadData, 'linked')) {
+      var idx = this.getThreadIdx(ident)
+      this.state.srcData.threads[idx].linked = []
+      return []
+    }
+    return threadData.linked
+  }
+
+  getLinkedUrlsCount(ident) {
+    return this.getLinkedUrls(ident).length
+  }
+
+  registerLinkedThread(ident, linkIdx) {
+    var lkident = (0,_i_is_as_i_does_jack_js_src_modules_Help__WEBPACK_IMPORTED_MODULE_0__.randomString)(21)
+    this.threadsMap[ident].linked[lkident] = { idx: linkIdx }
+    return lkident
+  }
+
+  isLastLinkedThread(ident, lkident) {
+    return this.getLinkedThreadIdx(ident, lkident) === this.getLinkedUrlsCount(ident) - 1
+  }
+
+  removeLinkedThread(ident, lkident) {
+    var tidx = this.getThreadIdx(ident)
+    var lidx = this.getLinkedThreadIdx(ident, lkident)
+    if (lidx === this.getLinkedUrlsCount(ident) - 1) {
+      this.state.srcData.threads[tidx].linked.pop()
+    } else {
+      this.state.srcData.threads[tidx].linked.splice(lidx, 1)
+      for (let [k, v] of Object.entries(this.threadsMap[ident].linked)) {
+        if (v.idx > lidx) {
+          this.threadsMap[ident].linked[k].idx = v.idx - 1
+        }
+      }
+    }
+  }
+
+  pushLinkedThread(ident, value) {
+    var idx = this.getThreadIdx(ident)
+    if(!this.state.srcData.threads[idx].linked){
+      this.state.srcData.threads[idx].linked = []
+    }
+      this.state.srcData.threads[idx].linked.push(value)
+  }
+
+  insertLinkedThread(ident, lkident, value) {
+    if (this.isLastLinkedThread(ident, lkident)) {
+      this.pushLinkedThread(ident, value)
+    } else {
+      var tidx = this.getThreadIdx(ident)
+      var lidx = this.getLinkedThreadIdx(ident, lkident)
+      this.state.srcData.threads[tidx].linked.splice(lidx, 0, value)
+      for (let [k, v] of Object.entries(this.threadsMap[ident].linked)) {
+        if (v.idx >= lidx && k !== lkident) {
+          this.threadsMap[ident].linked[k].idx = v.idx + 1
+        }
+      }
+    }
   }
 }
 
@@ -1476,43 +1352,54 @@ function newThread(randomId) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "instanceSwitch": () => (/* binding */ instanceSwitch)
+/* harmony export */   "NxEditSwitch": () => (/* binding */ NxEditSwitch)
 /* harmony export */ });
-/* harmony import */ var _i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/aliases.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/aliases.js");
+/* harmony import */ var _i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/valva/src/modules/transitions.js */ "./node_modules/@i-is-as-i-does/valva/src/modules/transitions.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
 /* harmony import */ var _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/NxIcons.js */ "./src/shared/NxIcons.js");
-/* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
-/* harmony import */ var _NxEdit_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxEdit.js */ "./src/editor/NxEdit.js");
 
 
 
 
+class NxEditSwitch {
+  constructor(editInst, readerInst, readerUpdatePrc) {
+    this.editInst = editInst
+    this.readerInst = readerInst
 
+    this.readerUpdatePrc = readerUpdatePrc
 
-function instanceSwitch(editInst, readerInst) {
-  var previewOn = false
-var instanceBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("A", "nx-edit-switch")
-  instanceBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.previewB64, 25))
+    this.previewOn = false
+    this._setSwitchBtn()
+  }
 
-  instanceBtn.addEventListener("click", function () {
-    previewOn = !previewOn
+  getSwitchBtn() {
+    return this.switchBtn
+  }
 
-    if (previewOn) {
-      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.fadeOut)(editInst, function () {
-        (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_3__.triggerUpdate)((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_4__.getEditState)(), true, true)
-        instanceBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.editB64
-        ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.fadeIn)(readerInst)
-      })
+  _instanceSwitch() {
+    this.previewOn = !this.previewOn
+
+    if (this.previewOn) {
+      (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vHide)(this.editInst, 'fade', 200,  function () {
+        this.readerUpdatePrc()
+        this.switchBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.editB64
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vShow)(this.readerInst, 'fade', 200)
+      }.bind(this))
     } else {
-      (0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.fadeOut)(readerInst, function () {
-        instanceBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.previewB64
-        ;(0,_i_is_as_i_does_valva_src_modules_aliases_js__WEBPACK_IMPORTED_MODULE_0__.fadeIn)(editInst)
-      })
+      (0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vHide)(this.readerInst, 'fade', 200,  function () {
+        this.switchBtn.firstChild.src = _shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.previewB64
+        ;(0,_i_is_as_i_does_valva_src_modules_transitions_js__WEBPACK_IMPORTED_MODULE_0__.vShow)(this.editInst, 'fade', 200)
+      }.bind(this))
     }
-  })
-  return instanceBtn
-}
+  }
 
+  _setSwitchBtn() {
+    this.switchBtn = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)('A', 'nx-edit-switch')
+    this.switchBtn.append((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.iconImage)(_shared_NxIcons_js__WEBPACK_IMPORTED_MODULE_2__.previewB64, 25))
+
+    this.switchBtn.addEventListener('click', this._instanceSwitch.bind(this))
+  }
+}
 
 
 /***/ }),
@@ -1529,9 +1416,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _reader_NxReader_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../reader/NxReader.js */ "./src/reader/NxReader.js");
 /* harmony import */ var _shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/NxCommons.js */ "./src/shared/NxCommons.js");
-/* harmony import */ var _NxEdit_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NxEdit.js */ "./src/editor/NxEdit.js");
-/* harmony import */ var _NxEditMenu_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NxEditMenu.js */ "./src/editor/NxEditMenu.js");
-/* harmony import */ var _NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./NxEditSwitch.js */ "./src/editor/NxEditSwitch.js");
+/* harmony import */ var _NxEditInstance_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./NxEditInstance.js */ "./src/editor/NxEditInstance.js");
+/* harmony import */ var _NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NxEditSwitch.js */ "./src/editor/NxEditSwitch.js");
+/* harmony import */ var _shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/NxState.js */ "./src/shared/NxState.js");
+/* harmony import */ var _NxEditState_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./NxEditState.js */ "./src/editor/NxEditState.js");
 
 
 
@@ -1540,27 +1428,383 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function editorElms(seed) {
-  (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.setEditState)(seed.state, seed.nxelm)
-  var indexMain = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-main-block nx-index")
-  indexMain.append((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.authorBlock)(), (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.editIndexBlock)())
-  var threadMain = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-main-block nx-thread")
-  threadMain.append((0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.editLocalBlock)(), (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.editDistantBlock)())
+  var EditState = new _NxEditState_js__WEBPACK_IMPORTED_MODULE_5__.NxEditState(seed.state)
+  var EditInstance = new _NxEditInstance_js__WEBPACK_IMPORTED_MODULE_2__.NxEditInstance(EditState)
 
-  var editInst = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.instanceWrap)((0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.appHeaderWithLang)(), [
-    (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.serviceWrap)([(0,_NxEditMenu_js__WEBPACK_IMPORTED_MODULE_3__.getEditMenu)()], [indexMain, threadMain], [], "edit"),
-  ])
+  var editInst = EditInstance.getInstanceElms()
 
-  var seed = {
+  var readerSeed = {
     editMode: true,
-    state: Object.assign({}, (0,_NxEdit_js__WEBPACK_IMPORTED_MODULE_2__.getEditState)()),
+    state: Object.assign({}, EditState.getState()),
   }
-  var readerInst = (0,_reader_NxReader_js__WEBPACK_IMPORTED_MODULE_0__.readerElms)(seed)
-  readerInst.style.display = "none"
-  var switchBtn = (0,_NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_4__.instanceSwitch)(editInst, readerInst)
+  var readerInst = (0,_reader_NxReader_js__WEBPACK_IMPORTED_MODULE_0__.readerElms)(readerSeed)
+  readerInst.style.display = 'none'
 
-  var editor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)("DIV", "nx-editor")
+  var readerUpdatePrc = function () {
+    return (0,_shared_NxState_js__WEBPACK_IMPORTED_MODULE_4__.triggerUpdate)(EditState.state, true, true)
+  }
+  var EditSwitch = new _NxEditSwitch_js__WEBPACK_IMPORTED_MODULE_3__.NxEditSwitch(editInst, readerInst, readerUpdatePrc)
+  var switchBtn = EditSwitch.getSwitchBtn()
+
+  var editor = (0,_shared_NxCommons_js__WEBPACK_IMPORTED_MODULE_1__.getElm)('DIV', 'nx-editor')
   editor.append(editInst, readerInst, switchBtn)
+
   return editor
+}
+
+
+/***/ }),
+
+/***/ "./src/editor/NxInputsFactory.js":
+/*!***************************************!*\
+  !*** ./src/editor/NxInputsFactory.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NxInputsFactory": () => (/* binding */ NxInputsFactory)
+/* harmony export */ });
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/load/NxSrc */ "./node_modules/@i-is-as-i-does/nexus-core/src/load/NxSrc.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxCoreTranslate.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_transl_NxElmTranslate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/transl/NxElmTranslate */ "./node_modules/@i-is-as-i-does/nexus-core/src/transl/NxElmTranslate.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxSpecs */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxSpecs.js");
+/* harmony import */ var _i_is_as_i_does_nexus_core_src_validt_NxStamper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @i-is-as-i-does/nexus-core/src/validt/NxStamper */ "./node_modules/@i-is-as-i-does/nexus-core/src/validt/NxStamper.js");
+/* harmony import */ var _shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/NxCommons */ "./src/shared/NxCommons.js");
+/* harmony import */ var _shared_NxIcons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/NxIcons */ "./src/shared/NxIcons.js");
+/* harmony import */ var _NxEditCommons__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./NxEditCommons */ "./src/editor/NxEditCommons.js");
+
+
+
+
+
+
+
+
+
+class NxInputsFactory {
+  constructor(EditState, EditMenu) {
+    this.EditState = EditState
+    this.EditMenu = EditMenu
+  }
+
+  inputElm(ref, callback = null, store = null) {
+    var idents = this._fieldIdents(ref)
+    var inp = this._resolveInput(idents, ref)
+
+    var lb = this._baseLabel(idents.alias)
+    var indc = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('SPAN', 'nx-edit-indication')
+    var fdbck = this._invalidSp()
+    lb.append(indc, fdbck)
+    this._setConditions(idents, inp, indc)
+
+    if (store) {
+      store[idents.field] = inp
+    }
+    var wrap = this._wrapInput(idents, inp, lb)
+
+    this._setInputEvt(ref, inp, fdbck, callback)
+    this._inputEvtHandler(ref, inp, fdbck, callback)
+
+    return wrap
+  }
+
+  _setConditions(idents, inp, indc) {
+    switch (idents.field) {
+      case 'url':
+        indc.textContent = '[http]'
+        inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.urlPattern
+        break
+      case 'linked':
+        indc.textContent = '[http]'
+        inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.urlPattern
+        break
+      case 'id':
+        indc.textContent = '[A-Za-z0-9-][3-36]'
+        inp.pattern = _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.idPattern
+        break
+      case 'type':
+        inp.pattern = '(' + _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.supportedMediaTypes.join('|') + ')'
+        break
+      case 'timestamp':
+        break
+      default:
+        var minmax = _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.charMinMax[idents.field]
+        indc.textContent = '[' + minmax[0] + '-' + minmax[1] + ']'
+        inp.setAttribute('maxlength', minmax[1])
+        inp.setAttribute('minlength', minmax[0])
+    }
+  }
+
+  _wrapInput(idents, inp, lb) {
+    var wrap = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('DIV', 'nx-edit-input nx-edit-' + idents.parent + '-' + idents.field)
+    wrap.append(lb)
+    if (idents.field === 'type') {
+      wrap.append(this._typeDropDown(inp))
+    } else {
+      wrap.append(inp)
+    }
+    return wrap
+  }
+
+  _typeDropDown(inp) {
+    var items = _i_is_as_i_does_nexus_core_src_validt_NxSpecs__WEBPACK_IMPORTED_MODULE_3__.supportedMediaTypes
+    return (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.selectDropDown)(items, inp, null, 'nx-edit-media-type-select')
+  }
+
+  _fieldIdents(ref) {
+    var idents = {}
+    var pos = ref.length - 1
+    if (ref[pos - 1] === 'linked') {
+      pos--
+    }
+    idents.field = ref[pos]
+    pos--
+    if (ref[pos - 1] === 'threads') {
+      pos--
+    }
+    idents.parent = ref[pos]
+    idents.alias = idents.field
+    if (idents.field === 'linked') {
+      idents.alias = 'url'
+    }
+    return idents
+  }
+
+  _isLongTextInput(idents) {
+    return ['about', 'description', 'main', 'aside', 'caption'].includes(idents.field)
+  }
+
+  _isRequired(idents) {
+    return ['handle', 'title', 'main', 'id', 'url', 'type', 'timestamp', 'linked'].includes(
+      idents.field
+    )
+  }
+
+  _resolveInput(idents, ref) {
+    var val = this.EditState.getValue(ref)
+    var inp
+    if (this._isLongTextInput(idents)) {
+      inp = this._textareaInput(val)
+    } else if (idents.field == 'timestamp') {
+      inp = this._dateInput(val)
+    } else {
+      inp = this._textInput(val)
+    }
+    inp.classList.add('nx-edit-input')
+
+    var hook = ref.join('-')
+    inp.id = hook
+    inp.name = hook
+    if (this._isRequired(idents)) {
+      inp.required = true
+    }
+    return inp
+  }
+
+  _textInput(val) {
+    var inp = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('INPUT', 'nx-edit-text')
+    inp.type = 'text'
+    inp.value = val
+    return inp
+  }
+
+  _textareaInput(val) {
+    var inp = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('TEXTAREA', 'nx-edit-textarea')
+    inp.textContent = val
+    return inp
+  }
+  _dateInput(val) {
+    var inp = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('INPUT', 'nx-edit-date')
+    inp.type = 'datetime-local'
+    inp.value = val
+    return inp
+  }
+
+  _baseLabel(field) {
+    var lb = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('LABEL', 'nx-edit-label')
+    lb.for = field
+    var title = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('SPAN', 'nx-edit-title')
+    title.textContent = (0,_i_is_as_i_does_nexus_core_src_transl_NxCoreTranslate__WEBPACK_IMPORTED_MODULE_1__.getTxt)(field)
+    ;(0,_i_is_as_i_does_nexus_core_src_transl_NxElmTranslate__WEBPACK_IMPORTED_MODULE_2__.registerTranslElm)(title, field)
+    lb.append(title)
+    return lb
+  }
+
+  _invalidSp() {
+    var sp = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.getElm)('SPAN', 'nx-edit-feedback')
+    sp.append((0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_5__.iconImage)(_shared_NxIcons__WEBPACK_IMPORTED_MODULE_6__.invalidB64))
+    return sp
+  }
+
+  _inputEvtHandler(ref, inp, fdbck, callback) {
+    var valid = inp.checkValidity()
+    var validPromise = null
+
+    if ((valid && ref.includes('url')) || ref.includes('linked')) {
+      valid = (0,_i_is_as_i_does_nexus_core_src_validt_NxStamper__WEBPACK_IMPORTED_MODULE_4__.isValidUrl)(inp.value)
+      if (valid && ref.includes('linked')) {
+        valid = (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_7__.isUnique)(
+          this.EditState.getLinkedUrls(ref[1]),
+          inp.value,
+          this.EditState.getLinkedThreadIdx(ref[1], ref[3])
+        )
+        if (valid) {
+          validPromise = (0,_i_is_as_i_does_nexus_core_src_load_NxSrc__WEBPACK_IMPORTED_MODULE_0__.getSrcData)(inp.value)
+            .then(() => {
+              return true
+            })
+            .catch(() => {
+              return false
+            })
+        }
+      }
+    } else if (ref.includes('id')) {
+      var nId = (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_7__.uniqueId)(
+        this.EditState.getIdsList(),
+        inp.value,
+        this.EditState.getThreadIdx(ref[1])
+      )
+      if (nId !== inp.value) {
+        inp.value = nId
+      }
+      valid = true
+    }
+
+    if (validPromise === null) {
+      validPromise = Promise.resolve(valid)
+    }
+
+    validPromise.then((isValid) => {
+      this.EditState.setNewValue(ref, inp.value)
+      this._setFeedbackIcon(fdbck, isValid)
+      if (typeof callback === 'function') {
+        callback(inp, isValid)
+      }
+    })
+  }
+
+  _setFeedbackIcon(fdbck, valid) {
+    var icsrc = _shared_NxIcons__WEBPACK_IMPORTED_MODULE_6__.invalidB64
+    if (valid) {
+      icsrc = _shared_NxIcons__WEBPACK_IMPORTED_MODULE_6__.validB64
+    }
+    fdbck.firstChild.src = icsrc
+  }
+
+  _setInputEvt(ref, inp, fdbck, callback) {
+    var c = 0
+    var undone = ''
+    var prev = inp.value
+    inp.addEventListener('focus', function () {
+      prev = inp.value
+    })
+    inp.addEventListener(
+      'change',
+      function () {
+        this._inputEvtHandler(ref, inp, fdbck, callback)
+        if (c > 0) {
+          var act = function (redo) {
+            if (redo) {
+              inp.value = undone
+            } else {
+              undone = inp.value
+              inp.value = prev
+            }
+            this._inputEvtHandler(ref, inp, fdbck, callback)
+          }.bind(this)
+          this.EditMenu.setLastAction(act)
+        } else {
+          c++
+        }
+      }.bind(this)
+    )
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/editor/NxLocalFormFactory.js":
+/*!******************************************!*\
+  !*** ./src/editor/NxLocalFormFactory.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NxLocalFormFactory": () => (/* binding */ NxLocalFormFactory)
+/* harmony export */ });
+/* harmony import */ var _shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/NxCommons */ "./src/shared/NxCommons.js");
+/* harmony import */ var _NxEditCommons__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./NxEditCommons */ "./src/editor/NxEditCommons.js");
+
+
+
+class NxLocalFormFactory {
+  constructor(InputsFactory) {
+    this.InputsFactory = InputsFactory
+  }
+
+  newThreadLocalForm(ident, indexElm) {
+    var form = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.getElm)('FORM', 'nx-thread-local-form')
+    var fieldset1 = this._localFieldSet1(ident, indexElm)
+    var fieldset2 = this._localFieldSet2(ident)
+    var fieldset3 = this._localFieldSet3(ident)
+
+    form.append(
+      (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.landmarkElm)('local thread'),
+      fieldset1,
+      (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.landmarkElm)('content'),
+      fieldset2,
+      (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.landmarkElm)('media'),
+      fieldset3
+    )
+    return form
+  }
+
+  _localFieldSet1(ident, indexElm) {
+    var fieldset1 = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.getElm)('FIELDSET')
+
+    var titleCallback = function (inp) {
+      var targ = indexElm.querySelector('.nx-thread-title')
+      if (targ.textContent !== inp.value) {
+        targ.textContent = inp.value
+      }
+    }
+    fieldset1.append(this.InputsFactory.inputElm(['threads', ident, 'id']))
+    fieldset1.append(this.InputsFactory.inputElm(['threads', ident, 'title'], titleCallback))
+    fieldset1.append(this.InputsFactory.inputElm(['threads', ident, 'description']))
+    return fieldset1
+  }
+
+  _localFieldSet2(ident) {
+    var fieldset2 = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.getElm)('FIELDSET')
+    var fields = ['timestamp', 'main', 'aside']
+    fields.forEach((field) => {
+      fieldset2.append(this.InputsFactory.inputElm(['threads', ident, 'content', field]))
+    })
+    return fieldset2
+  }
+
+  _localFieldSet3(ident) {
+    var fieldset3 = (0,_shared_NxCommons__WEBPACK_IMPORTED_MODULE_0__.getElm)('FIELDSET')
+
+    var typeInp = this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'type'])
+    var typeCallback = function (inp, valid) {
+      if (valid) {
+        var item = typeInp.querySelector('[data-item=' + (0,_NxEditCommons__WEBPACK_IMPORTED_MODULE_1__.resolveMediaType)(inp.value) + ']')
+        if (item) {
+          item.click()
+        }
+      }
+    }
+    fieldset3.append(
+      this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'url'], typeCallback)
+    )
+    fieldset3.append(typeInp)
+    fieldset3.append(this.InputsFactory.inputElm(['threads', ident, 'content', 'media', 'caption']))
+    return fieldset3
+  }
 }
 
 

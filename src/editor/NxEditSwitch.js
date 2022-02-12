@@ -1,35 +1,43 @@
-import { fadeOut, fadeIn } from "@i-is-as-i-does/valva/src/modules/aliases.js"
-import {
-  getElm,
-  iconImage,
-} from "../shared/NxCommons.js"
-import { editB64, previewB64 } from "../shared/NxIcons.js"
-import { triggerUpdate } from "../shared/NxState.js"
-import {
-  getEditState,
-} from "./NxEdit.js"
+import { vShow, vHide } from '@i-is-as-i-does/valva/src/modules/transitions.js'
+import { getElm, iconImage } from '../shared/NxCommons.js'
+import { editB64, previewB64 } from '../shared/NxIcons.js'
 
-export function instanceSwitch(editInst, readerInst) {
-  var previewOn = false
-var instanceBtn = getElm("A", "nx-edit-switch")
-  instanceBtn.append(iconImage(previewB64, 25))
+export class NxEditSwitch {
+  constructor(editInst, readerInst, readerUpdatePrc) {
+    this.editInst = editInst
+    this.readerInst = readerInst
 
-  instanceBtn.addEventListener("click", function () {
-    previewOn = !previewOn
+    this.readerUpdatePrc = readerUpdatePrc
 
-    if (previewOn) {
-      fadeOut(editInst, function () {
-        triggerUpdate(getEditState(), true, true)
-        instanceBtn.firstChild.src = editB64
-        fadeIn(readerInst)
-      })
+    this.previewOn = false
+    this._setSwitchBtn()
+  }
+
+  getSwitchBtn() {
+    return this.switchBtn
+  }
+
+  _instanceSwitch() {
+    this.previewOn = !this.previewOn
+
+    if (this.previewOn) {
+      vHide(this.editInst, 'fade', 200,  function () {
+        this.readerUpdatePrc()
+        this.switchBtn.firstChild.src = editB64
+        vShow(this.readerInst, 'fade', 200)
+      }.bind(this))
     } else {
-      fadeOut(readerInst, function () {
-        instanceBtn.firstChild.src = previewB64
-        fadeIn(editInst)
-      })
+      vHide(this.readerInst, 'fade', 200,  function () {
+        this.switchBtn.firstChild.src = previewB64
+        vShow(this.editInst, 'fade', 200)
+      }.bind(this))
     }
-  })
-  return instanceBtn
-}
+  }
 
+  _setSwitchBtn() {
+    this.switchBtn = getElm('A', 'nx-edit-switch')
+    this.switchBtn.append(iconImage(previewB64, 25))
+
+    this.switchBtn.addEventListener('click', this._instanceSwitch.bind(this))
+  }
+}

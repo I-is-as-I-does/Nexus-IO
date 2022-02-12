@@ -1,42 +1,31 @@
-
-import { readerElms } from "../reader/NxReader.js"
-import {
-  appHeaderWithLang,
-  getElm,
-  instanceWrap,
-  serviceWrap,
-} from "../shared/NxCommons.js"
-import {
-  editDistantBlock,
-  authorBlock,
-  editIndexBlock,
-  editLocalBlock,
-  setEditState,
-  getEditState,
-} from "./NxEdit.js"
-import { getEditMenu } from "./NxEditMenu.js"
-import { instanceSwitch } from "./NxEditSwitch.js"
+import { readerElms } from '../reader/NxReader.js'
+import { getElm } from '../shared/NxCommons.js'
+import { NxEditInstance } from './NxEditInstance.js'
+import { NxEditSwitch } from './NxEditSwitch.js'
+import { triggerUpdate } from '../shared/NxState.js'
+import { NxEditState } from './NxEditState.js'
 
 export function editorElms(seed) {
-  setEditState(seed.state, seed.nxelm)
-  var indexMain = getElm("DIV", "nx-main-block nx-index")
-  indexMain.append(authorBlock(), editIndexBlock())
-  var threadMain = getElm("DIV", "nx-main-block nx-thread")
-  threadMain.append(editLocalBlock(), editDistantBlock())
+  var EditState = new NxEditState(seed.state)
+  var EditInstance = new NxEditInstance(EditState)
 
-  var editInst = instanceWrap(appHeaderWithLang(), [
-    serviceWrap([getEditMenu()], [indexMain, threadMain], [], "edit"),
-  ])
+  var editInst = EditInstance.getInstanceElms()
 
-  var seed = {
+  var readerSeed = {
     editMode: true,
-    state: Object.assign({}, getEditState()),
+    state: Object.assign({}, EditState.getState()),
   }
-  var readerInst = readerElms(seed)
-  readerInst.style.display = "none"
-  var switchBtn = instanceSwitch(editInst, readerInst)
+  var readerInst = readerElms(readerSeed)
+  readerInst.style.display = 'none'
 
-  var editor = getElm("DIV", "nx-editor")
+  var readerUpdatePrc = function () {
+    return triggerUpdate(EditState.state, true, true)
+  }
+  var EditSwitch = new NxEditSwitch(editInst, readerInst, readerUpdatePrc)
+  var switchBtn = EditSwitch.getSwitchBtn()
+
+  var editor = getElm('DIV', 'nx-editor')
   editor.append(editInst, readerInst, switchBtn)
+
   return editor
 }
