@@ -128,7 +128,7 @@ export function errorPrgr() {
   if (isCssLoaded()) {
     p.className = 'nx-error'
   } else {
-    p.style.margin = '0 auto'
+    p.style.margin = '2vh auto'
     p.style.fontFamily = '"Courier New", Courier, monospace'
     p.style.fontSize = '13px'
   }

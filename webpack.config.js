@@ -10,6 +10,8 @@ const dirs = {
   APP_DIR: APP_DIR
 }
 
+const splitChunks = false
+/* previously 
 const splitChunks = {
     chunks: "all",
     cacheGroups: {
@@ -30,7 +32,7 @@ const splitChunks = {
       },
     },
   }
-  
+  */
 module.exports = (env, argv) => {
     if (argv.mode === 'development' || argv.mode === 'production') {
       return require('./config/' + argv.mode + '.js')(dirs, splitChunks);

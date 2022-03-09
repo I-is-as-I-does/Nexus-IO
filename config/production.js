@@ -21,6 +21,9 @@ module.exports = function(dirs, splitChunks) {
       splitChunks: splitChunks
     },
     plugins: [
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1,
+      }),
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.BannerPlugin({
         banner: license,

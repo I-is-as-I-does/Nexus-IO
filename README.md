@@ -3,7 +3,7 @@
 Nexus is a Peer-to-Peer Micro Social Network.  
 Nexus IO is a Nexus reader and editor app in vanilla JS.
 
-Demo available on the project website: (nexus-dock.github.io)[https://nexus-dock.github.io/]
+Demo available on the project website: [nexus-dock.github.io](https://nexus-dock.github.io/)
 
 <img src="doc/NxIO-editor-screenshot.png" height="200px" />
 <img src="doc/NxIO-reader-screenshot.png" height="200px" />
@@ -59,6 +59,7 @@ If a query string is already present, use `&new` or `&edit` instead.
 ### Enable Console Logs
 
 Add `?log` (or `&log`) to the current url.  
+
 > Among other things, this can be useful to understand why a distant Nexus is not loading.
 
 ## Reader Overview
@@ -94,6 +95,7 @@ If a thread has not yet been visited, or if its content has been updated since y
 To reset hints, **clear the app cache**.   
 In your browser address bar, add `?clear` to the current url.  
 If a query string is already present, use `&clear` instead.  
+
 > This will **not** erase the editor local saves.
 
 ## Editor Overview
@@ -111,6 +113,7 @@ Make sure **all your fields are valid**, or your Nexus might not load at all.
 #### Linked Threads
 
 When you enter a Nexus url in a `linked threads` field, the app will check if it loads correctly.  
+
 > If the field gets marked as invalid, there’s probably something wrong: 
 > either the link is broken, the distant Nexus data is invalid, or the request was refused.  
 
