@@ -7,10 +7,10 @@ import { vSplitFlap } from '@i-is-as-i-does/valva/src/modules/transitions'
 var urlStore = {}
 
 function authorMiniUrl(authorUrl) {
-  var url = getStoredItem(authorUrl, 'local', urlStore, false)
+  var url = getStoredItem(authorUrl, 'session', urlStore, false)
   if (!url) {
     url = miniUrl(authorUrl)
-    storeItem(authorUrl, url, 'local', urlStore, false)
+    storeItem(authorUrl, url, 'session', urlStore, false)
   }
   return url
 }

@@ -1,3 +1,4 @@
+const webpack = require("webpack")
 module.exports = function(dirs, splitChunks) {
   return {
     mode: "development",
@@ -12,6 +13,12 @@ module.exports = function(dirs, splitChunks) {
     optimization: {
       minimize: false,
       splitChunks: splitChunks
-    }
+    },
+    plugins: [
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1,
+      }),
+      new webpack.optimize.ModuleConcatenationPlugin()
+    ]
   }
 }
