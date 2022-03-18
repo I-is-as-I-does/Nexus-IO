@@ -311,9 +311,7 @@ function threadFieldText(threadData, ref = []) {
       data = data[ref[r]]
     }
     if (isNonEmptyStr(data)) {
-      if (ref.includes('timestamp')) {
-        data = new Date(data).toISOString().split('T')[0]
-      } else if (['description', 'main', 'aside', 'caption'].includes(ref[ref.length - 1])) {
+       if (['description', 'main', 'aside', 'caption'].includes(ref[ref.length - 1])) {
         data = lines(data)
       }
       return data

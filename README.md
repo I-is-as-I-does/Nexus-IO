@@ -185,7 +185,8 @@ npm run build:prod
 
 ## Related
 
-For apps, documentation, demo, starter kits, ... cf. [github.com/I-is-as-I-does/Nexus](https://github.com/I-is-as-I-does/Nexus) 
+Project website: [nexus-dock.github.io](https://nexus-dock.github.io)
+Project hub repository: [github.com/I-is-as-I-does/Nexus](https://github.com/I-is-as-I-does/Nexus) 
 
 ## License
 

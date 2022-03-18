@@ -610,7 +610,7 @@ const supportedBaseMedia = [
 ]
 const supportedMediaTypes = supportedBaseMedia.concat(supportedOembedMedia)
 const timestampPattern =
-    '^[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?((T|\s)(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]))?)?$'
+    '^[0-9]{4}((-|\s|\.|\/)(0[1-9]|1[0-2])((-|\s|\.|\/)(0[1-9]|[1-2][0-9]|3[0-1]))?)?'
 const idPattern = '^[a-zA-Z0-9-]{3,36}$'
 const urlPattern = '^https?:\/\/.*'
 
@@ -791,9 +791,25 @@ function fallbackContent(lax = false){
     return null
 }
 
+function formatTimestamp(timestamp){
+  if(!timestamp){
+    return fallbacks.timestamp;
+  }
+  if(timestamp.match(timestampPattern+'$')){
+      return timestamp
+  }
+    try {
+      timestamp = new Date(timestamp).toISOString().split('T')[0]
+    } catch (e){
+      logErr('Invalid timestamp', timestamp)
+      timestamp = fallbacks.timestamp
+    }
+  return timestamp
+}
+
 function validTimestamp(timestamp, lax = false){
   if(isValidTimestamp (timestamp, false)){
-    return timestamp
+    return formatTimestamp(timestamp)
   }
   if(lax){
     return fallbacks.timestamp
@@ -1486,11 +1502,11 @@ function registerData(url, nxdata) {
 }
 
 function registerLinkedMaps(src, map) {
-  storeItem(src + ':linked', map, 'session', 'linked')
+  storeItem(src + ':linked', map, null, 'linked')
 }
 
 function getStoredLinkedMaps(src) {
-  return getStoredItem(src + ':linked', 'session', 'linked')
+  return getStoredItem(src + ':linked', null, 'linked')
 }
 
 function getStoredData(url) {
@@ -2642,16 +2658,13 @@ function iconImage(b64, size = 20) {
 
 
 
-
 var urlStore = {}
 
 function authorMiniUrl(authorUrl) {
-  var url = getStoredItem(authorUrl, 'session', urlStore, false)
-  if (!url) {
-    url = miniUrl(authorUrl)
-    storeItem(authorUrl, url, 'session', urlStore, false)
+  if (!urlStore[authorUrl]) {
+    urlStore[authorUrl] = miniUrl(authorUrl)
   }
-  return url
+  return urlStore[authorUrl]
 }
 
 function toggleUnseen(viewlk, state) {
@@ -4008,9 +4021,7 @@ function threadFieldText(threadData, ref = []) {
       data = data[ref[r]]
     }
     if (isNonEmptyStr(data)) {
-      if (ref.includes('timestamp')) {
-        data = new Date(data).toISOString().split('T')[0]
-      } else if (['description', 'main', 'aside', 'caption'].includes(ref[ref.length - 1])) {
+       if (['description', 'main', 'aside', 'caption'].includes(ref[ref.length - 1])) {
         data = lines(data)
       }
       return data
@@ -4216,7 +4227,7 @@ function newThread(randomId) {
     title: randomId,
     description: '...',
     content: {
-      timestamp: new Date().toISOString().substring(0, 16),
+      timestamp: new Date().toISOString().split('T')[0],
       main: '...',
       aside: '',
       media: {

@@ -1,18 +1,15 @@
 import { registerUpdateEvt, triggerUpdate, isStateUnseen, getAltState } from '../shared/NxState.js'
 import { baseViewLink, getElm, setToggleOnDisplay } from '../shared/NxCommons.js'
-import { getStoredItem, storeItem } from '@i-is-as-i-does/nexus-core/src/storg/NxStorage.js'
 import { miniUrl } from '@i-is-as-i-does/jack-js/src/modules/Web.js'
 import { vSplitFlap } from '@i-is-as-i-does/valva/src/modules/transitions'
 
 var urlStore = {}
 
 function authorMiniUrl(authorUrl) {
-  var url = getStoredItem(authorUrl, 'session', urlStore, false)
-  if (!url) {
-    url = miniUrl(authorUrl)
-    storeItem(authorUrl, url, 'session', urlStore, false)
+  if (!urlStore[authorUrl]) {
+    urlStore[authorUrl] = miniUrl(authorUrl)
   }
-  return url
+  return urlStore[authorUrl]
 }
 
 function toggleUnseen(viewlk, state) {

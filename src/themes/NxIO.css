@@ -17,6 +17,7 @@
     margin: 0;
     padding: 0;
     scroll-behavior: smooth;
+    max-width: 100%;
 }
 
 .nx {
@@ -50,7 +51,7 @@
 }
 
 .nx .nx-reader > section {
-    min-height: 80vh;
+    min-height: 75vh;
 }
 .nx ul {
     list-style-type: none;

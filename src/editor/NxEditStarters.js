@@ -30,7 +30,7 @@ export function newThread(randomId) {
     title: randomId,
     description: '...',
     content: {
-      timestamp: new Date().toISOString().substring(0, 16),
+      timestamp: new Date().toISOString().split('T')[0],
       main: '...',
       aside: '',
       media: {
