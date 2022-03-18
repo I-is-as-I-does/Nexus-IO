@@ -56,9 +56,8 @@ export function init() {
         if (nxdata) {
           seed.nxdata = nxdata
           seed.state = dataToState(seed.request.url, seed.request.id, seed.nxdata)
-          if(on){
-            triggerUpdate(seed.state, true, true)
-          } else {
+          triggerUpdate(seed.state, true, true)
+          if(!on){
             on = true
             updateHost(host, elm)
           }

@@ -13,7 +13,7 @@ var currentState = {
 
 var updateStore = { onChange: [], onSrcChange: [] }
 
-function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
+function triggerCallbacks(state, triggerAll, skipHistoryUpdate, forceTrigger) {
   var ks = ['onChange']
   if (triggerAll) {
     ks.push('onSrcChange')
@@ -22,7 +22,7 @@ function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
   ks.forEach((k) => {
     if (updateStore[k].length) {
       updateStore[k].forEach((callback) => {
-        callback(state, skipHistoryUpdate)
+        callback(state, skipHistoryUpdate, forceTrigger)
       })
     }
   })
@@ -102,7 +102,7 @@ export function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = f
     var resetIndex = srcChanged || forceTrigger
     currentState = Object.assign({}, state)
 
-    triggerCallbacks(state, resetIndex, skipHistoryUpdate)
+    triggerCallbacks(state, resetIndex, skipHistoryUpdate, forceTrigger)
   }
 }
 

@@ -22,6 +22,10 @@ import { logErr } from '@i-is-as-i-does/nexus-core/src/logs/NxLog.js'
 import { Spinner } from '@i-is-as-i-does/nexus-core/src/data/NxSpin.js'
 import { getLinkedInstances } from '@i-is-as-i-does/nexus-core/src/data/NxNest.js'
 import { registerLinkedMaps } from '@i-is-as-i-does/nexus-core/src/storg/NxMemory'
+
+var inEditMode = false
+var forceUpdate = false
+
 var threadBlocks
 
 var currentElm
@@ -216,10 +220,16 @@ function toggleDistantLandmark(hasLinks) {
   }
 }
 
+function noLinkedCache(){
+if(inEditMode || forceUpdate){
+  return true
+}
+return false
+}
+
 function setLinkedItems(dataUrl, threadData) {
   var key = dataUrl + '#' + threadData.id
-  var store = getLinkedInstances(key, threadData)
-
+  var store = getLinkedInstances(key, threadData, [], noLinkedCache())
   var register = store.register
   var confirmedInstances = {}
   var indexes = []
@@ -340,7 +350,9 @@ export function threadTextElm(threadData, ref) {
   return dv
 }
 
-export function mainThreadBlock(state) {
+export function mainThreadBlock(state, editMode) {
+
+  inEditMode = editMode
   var threadData = resolveThreadData(state)
 
   var mainBlock = getElm('DIV', 'nx-main-block nx-thread')
@@ -357,7 +369,8 @@ export function mainThreadBlock(state) {
 
   mainBlock.append(...blocks)
 
-  registerUpdateEvt(function (newState) {
+  registerUpdateEvt(function (newState, skip, forceTrigger) {
+    forceUpdate = forceTrigger
     updateThreadBlocks(newState)
   })
 

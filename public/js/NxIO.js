@@ -1907,7 +1907,7 @@ var currentState = {
 
 var updateStore = { onChange: [], onSrcChange: [] }
 
-function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
+function triggerCallbacks(state, triggerAll, skipHistoryUpdate, forceTrigger) {
   var ks = ['onChange']
   if (triggerAll) {
     ks.push('onSrcChange')
@@ -1916,7 +1916,7 @@ function triggerCallbacks(state, triggerAll, skipHistoryUpdate) {
   ks.forEach((k) => {
     if (updateStore[k].length) {
       updateStore[k].forEach((callback) => {
-        callback(state, skipHistoryUpdate)
+        callback(state, skipHistoryUpdate, forceTrigger)
       })
     }
   })
@@ -1996,7 +1996,7 @@ function triggerUpdate(state, skipHistoryUpdate = false, forceTrigger = false) {
     var resetIndex = srcChanged || forceTrigger
     currentState = Object.assign({}, state)
 
-    triggerCallbacks(state, resetIndex, skipHistoryUpdate)
+    triggerCallbacks(state, resetIndex, skipHistoryUpdate, forceTrigger)
   }
 }
 
@@ -3732,6 +3732,10 @@ function resolveLinkedViews (view, exclude = [], noCache = false) {
 
 
 
+
+var inEditMode = false
+var forceUpdate = false
+
 var threadBlocks
 
 var currentElm
@@ -3926,10 +3930,16 @@ function toggleDistantLandmark(hasLinks) {
   }
 }
 
+function noLinkedCache(){
+if(inEditMode || forceUpdate){
+  return true
+}
+return false
+}
+
 function setLinkedItems(dataUrl, threadData) {
   var key = dataUrl + '#' + threadData.id
-  var store = getLinkedInstances(key, threadData)
-
+  var store = getLinkedInstances(key, threadData, [], noLinkedCache())
   var register = store.register
   var confirmedInstances = {}
   var indexes = []
@@ -4050,7 +4060,9 @@ function threadTextElm(threadData, ref) {
   return dv
 }
 
-function mainThreadBlock(state) {
+function mainThreadBlock(state, editMode) {
+
+  inEditMode = editMode
   var threadData = resolveThreadData(state)
 
   var mainBlock = getElm('DIV', 'nx-main-block nx-thread')
@@ -4067,7 +4079,8 @@ function mainThreadBlock(state) {
 
   mainBlock.append(...blocks)
 
-  registerUpdateEvt(function (newState) {
+  registerUpdateEvt(function (newState, skip, forceTrigger) {
+    forceUpdate = forceTrigger
     updateThreadBlocks(newState)
   })
 
@@ -4085,7 +4098,7 @@ function readerElms(seed) {
   return instanceWrap(appHeader(), [
     serviceWrap(
       [historyBlock(seed.state)],
-      [mainIndexBlock(seed.state), mainThreadBlock(seed.state)],
+      [mainIndexBlock(seed.state), mainThreadBlock(seed.state, seed.editMode)],
       [sourceBlock(seed.state, seed.styleUrl, seed.editMode)],
       'reader'
     ),
@@ -5825,9 +5838,8 @@ function init() {
         if (nxdata) {
           seed.nxdata = nxdata
           seed.state = dataToState(seed.request.url, seed.request.id, seed.nxdata)
-          if(on){
-            triggerUpdate(seed.state, true, true)
-          } else {
+          triggerUpdate(seed.state, true, true)
+          if(!on){
             on = true
             updateHost(host, elm)
           }

@@ -8,7 +8,7 @@ export function readerElms(seed) {
   return instanceWrap(appHeader(), [
     serviceWrap(
       [historyBlock(seed.state)],
-      [mainIndexBlock(seed.state), mainThreadBlock(seed.state)],
+      [mainIndexBlock(seed.state), mainThreadBlock(seed.state, seed.editMode)],
       [sourceBlock(seed.state, seed.styleUrl, seed.editMode)],
       'reader'
     ),
